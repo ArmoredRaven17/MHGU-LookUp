@@ -43,8 +43,8 @@ export interface Canteen {
   unlocks: IngredientUnlock[][]
   dishes: Dish[]
   menus: Record<string, { sauce: string; skills: string[] }[]>
-  daily: { skill: string; later: boolean }[]
-  dailyDrink: { skill: string; later: boolean }[]
+  daily: { id: number; skill: string; desc: string }[]
+  dailyDrink: { id: number; skill: string; desc: string }[]
   odds: { normal: number; fired: string; gourmet: number }[]
   sauces: string[]
 }

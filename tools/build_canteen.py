@@ -12,7 +12,8 @@ Read from the ROM (romfs table/ and eng/table/Kitchen_eng.gmd, catSkillData_eng.
 - Sauces: table/kitchenListSkillSet.kcs (cKitchenListSkillSet: mMenuType, mSauceType, mKitchenSkill0..2): a dish
   offers every set of its mMenuType, in table order (0x732618). Sauce name = Kitchen 48 + mSauceType, with the tag
   0x7338ac adds (read for MHGU Armor Skills Explained's Food Skills: C:/MHGU-Extract/food-skills/out/K-sauce-tags.json).
-  Skill 66 / 67 = a Daily Skill drawn from kitchenListSkillRandom.kcr / kitchenListSkillAlcohol.kca.
+  Skill 66 / 67 = drawn from kitchenListSkillRandom.kcr / kitchenListSkillAlcohol.kca (catSkillData has no text for
+  either id; shown as Raven's section name 'Daily Skills'). Their s32 mOpenType is not read, so not shown.
 - Odds, read for the Food Skills page (C:/MHGU-Extract/food-skills/gen_meals.py, 0x1a64d4, 0x161f430): a set's
   first skill activates 80% of the time, its second 60%, its third never; with the chef Fired Up (the dish on the
   day's list) 100% / 70-90% / 30-70% by Canteen level; a Gourmet Voucher activates all three.
@@ -155,12 +156,12 @@ def build(gmd, write, quest_info):
     for i, (mt, sauce, *sk) in enumerate(sets):
         menus.setdefault(mt, []).append({
             'sauce': f"{K[48 + sauce]} {tags.get(i, '')}".strip(),
-            'skills': ['Daily Skill' if x == 66 else 'Daily Drink Skill' if x == 67 else skill(x) for x in sk if x],
+            'skills': ['Daily Skills' if x in (66, 67) else skill(x) for x in sk if x],
         })
 
     def draw(name):
         d = open(ROM + 'table/' + name, 'rb').read()
-        return [{'skill': skill(k), 'later': bool(o)} for k, o in
+        return [{'id': k, 'skill': skill(k), 'desc': cats[3 * k + 1]} for k, o in
                 (struct.unpack_from('<2i', d, 8 + 8 * i) for i in range(struct.unpack_from('<I', d, 4)[0]))]
 
     ways = unlocks(gmd, quest_info)

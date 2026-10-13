@@ -13,9 +13,9 @@ const VIEWS = [
 ]
 
 // The view a route belongs to: /canteen/d<row> (a dish), /canteen/i<id> (an ingredient),
-// /canteen/daily and /canteen/drink (the two Daily Skill lists).
+// /canteen/s<skill> (a skill in the Daily Skills draw lists), /canteen/daily (that list).
 function viewOf(id: string | undefined) {
-  if (id === 'daily' || id === 'drink') return 'daily'
+  if (id === 'daily' || (id && /^s\d+$/.test(id))) return 'daily'
   if (id && /^i\d+$/.test(id)) return 'ingredients'
   if (id && /^d\d+$/.test(id)) return 'dishes'
   return null
@@ -31,10 +31,7 @@ export default function CanteenPage() {
   const entries = useMemo(() => {
     if (!data) return []
     if (view === 'daily') {
-      return [
-        { key: 'daily', label: 'Daily Skill', group: 'Daily Skills', sub: `${data.daily.length} skills` },
-        { key: 'drink', label: 'Daily Drink Skill', group: 'Daily Skills', sub: `${data.dailyDrink.length} skills` },
-      ]
+      return dailySkills(data).map(s => ({ key: `s${s.id}`, label: s.skill, group: 'Daily Skills', search: s.desc }))
     }
     if (view === 'ingredients') {
       return data.ingredients.map((n, i) => ({ key: `i${i}`, label: n, group: 'Ingredients', sub: unlockHint(data.unlocks[i][0]),
@@ -49,15 +46,15 @@ export default function CanteenPage() {
 
   let detail = null
   const kind = viewOf(id)
-  if (data && id === 'daily') detail = <Daily title="Daily Skill" list={data.daily} />
-  else if (data && id === 'drink') detail = <Daily title="Daily Drink Skill" list={data.dailyDrink} />
+  const daily = data && id?.startsWith('s') ? dailySkills(data).find(s => `s${s.id}` === id) : undefined
+  if (daily) detail = <DailySkill skill={daily} />
   else if (data && kind === 'dishes' && data.dishes[+id!.slice(1)]) detail = <DishDetail key={id} data={data} row={+id!.slice(1)} />
   else if (data && kind === 'ingredients' && data.ingredients[+id!.slice(1)]) detail = <IngredientDetail key={id} data={data} ing={+id!.slice(1)} />
 
   const placeholder = view === 'dishes' ? 'Search dishes or ingredients…' : view === 'ingredients' ? 'Search ingredients…' : 'Search…'
   return (
     <ListPage entries={entries} base="/canteen" selected={id} placeholder={placeholder}
-              emptyText="Select a dish, an ingredient or a Daily Skill list." filter={{ value: view, options: VIEWS, onChange: setView }}>
+              emptyText="Select a dish, an ingredient or a skill." filter={{ value: view, options: VIEWS, onChange: setView }}>
       {detail}
     </ListPage>
   )
@@ -81,7 +78,7 @@ function Odds({ data }: { data: Canteen }) {
   return (
     <p className="text-muted" style={{ margin: '6px 0 0', fontSize: 12 * scale }}>
       Chance each skill activates, by its place in the sauce: {data.odds.map((o, i) =>
-        `${['1st', '2nd', '3rd'][i]} ${o.normal}% (chef Fired Up ${o.fired}%)`).join(' · ')}. A Gourmet Voucher activates all three.
+        `${['1st', '2nd', '3rd'][i]} ${o.normal}% (chef fired up ${o.fired}%)`).join(' · ')}. A Gourmet Voucher activates all three.
     </p>
   )
 }
@@ -117,15 +114,12 @@ function DishDetail({ data, row }: { data: Canteen; row: number }) {
             {sauces.map((s, i) => (
               <tr key={i} className="tbl-row">
                 <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>{s.sauce}</td>
-                {[0, 1, 2].map(k => <td key={k} className="tbl-cell">{s.skills[k] ?? ''}</td>)}
+                {[0, 1, 2].map(k => <td key={k} className="tbl-cell">{s.skills[k] === 'Daily Skills' ? <Link to="/canteen/daily">Daily Skills</Link> : s.skills[k] ?? ''}</td>)}
               </tr>
             ))}
           </tbody>
         </table>
         <Odds data={data} />
-        <p className="text-muted" style={{ margin: '4px 0 0', fontSize: 12 * scale }}>
-          A Daily Skill is drawn from the day's list (see <Link to="/canteen/daily">Daily Skills</Link>).
-        </p>
       </Section>
       <Section title="Notes">
         <NotesBox target={{ type: 'dish', id: String(row), name: d.name, category: 'Canteen dish', path }} />
@@ -176,7 +170,7 @@ function unlockHint(u: IngredientUnlock) {
 
 function Unlock({ u }: { u: IngredientUnlock }) {
   if (u.kind === 'start') return <>On the list from the start.</>
-  if (u.kind === 'talk') return <>Talk to the {u.npc} once his daughter has asked you to check on him.</>
+  if (u.kind === 'talk') return <>Talk to the {u.npc}.</>
   if (u.kind === 'request') {
     return (
       <>Fulfill {u.npc}'s Villager Request:{u.items.map((it, i) => (
@@ -186,22 +180,23 @@ function Unlock({ u }: { u: IngredientUnlock }) {
   }
   return (
     <>
-      Clear <Link to={`/quests/${u.quest}`}>{u.title}</Link> <span className="text-muted">({u.category} {u.stars})</span>
-      {u.via === 'talk' ? '; a villager hands it over when you next talk to them.' : '.'}
+      Clear <Link to={`/quests/${u.quest}`}>{u.title}</Link> <span className="text-muted">({u.category} {u.stars})</span>.
     </>
   )
 }
 
-function Daily({ title, list }: { title: string; list: Canteen['daily'] }) {
+// Every skill the two draw lists hold, once each, in table order.
+function dailySkills(data: Canteen) {
+  const seen = new Set<number>()
+  return [...data.daily, ...data.dailyDrink].filter(s => !seen.has(s.id) && seen.add(s.id))
+}
+
+function DailySkill({ skill }: { skill: Canteen['daily'][number] }) {
   const scale = useTextScale()
   return (
     <div style={{ maxWidth: 720 }}>
-      <DetailHeader title={title} sub="Drawn each time the Canteen's menu refreshes" />
-      <Section title={`Skills (${list.length})`}>
-        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 * scale }}>
-          {list.map(s => <li key={s.skill}>{s.skill}{s.later && <span className="text-muted"> (later in the game)</span>}</li>)}
-        </ul>
-      </Section>
+      <DetailHeader title={skill.skill} />
+      <p style={{ margin: 0, fontSize: 14 * scale, whiteSpace: 'pre-line' }}>{skill.desc}</p>
     </div>
   )
 }
