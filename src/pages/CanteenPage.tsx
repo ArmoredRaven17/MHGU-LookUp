@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { loadCanteen, type Canteen, type Dish } from '../data/loaders'
+import { loadCanteen, type Canteen, type Dish, type IngredientUnlock } from '../data/loaders'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
@@ -23,7 +23,8 @@ export default function CanteenPage() {
     if (!data) return []
     if (view === 'ingredients') {
       return [{ key: 'daily', label: 'Daily Skills', group: 'Skills of the day' },
-        ...data.ingredients.map((n, i) => ({ key: `i${i}`, label: n, group: 'Ingredients' }))]
+        ...data.ingredients.map((n, i) => ({ key: `i${i}`, label: n, group: 'Ingredients', sub: unlockHint(data.unlocks[i][0]),
+          search: data.unlocks[i].map(unlockHint).join(' ') }))]
     }
     return data.dishes.map((d, i) => ({
       key: `d${i}`, label: d.name, group: `Canteen Level ${d.level}`,
@@ -124,10 +125,9 @@ function IngredientDetail({ data, ing }: { data: Canteen; ing: number }) {
     <div style={{ maxWidth: 720 }}>
       <DetailHeader title={name} sub="Canteen ingredient" />
       <Section title="How to Get It">
-        <p style={{ margin: 0, fontSize: 13 * scale }}>
-          The game adds new ingredients as you go on quests, raise your Hunter Rank and complete villagers' requests.
-          Which one unlocks this ingredient is not read from the game yet.
-        </p>
+        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 * scale }}>
+          {data.unlocks[ing].map((u, i) => <li key={i} style={{ marginBottom: 4 }}><Unlock u={u} /></li>)}
+        </ul>
       </Section>
       <Section title={`Dishes (${uses.length})`}>
         <table style={{ borderCollapse: 'collapse' }}>
@@ -147,6 +147,31 @@ function IngredientDetail({ data, ing }: { data: Canteen; ing: number }) {
         </table>
       </Section>
     </div>
+  )
+}
+
+function unlockHint(u: IngredientUnlock) {
+  if (u.kind === 'start') return 'From the start'
+  if (u.kind === 'quest') return u.title
+  if (u.kind === 'request') return `${u.npc}'s Villager Request`
+  return `Talk to the ${u.npc}`
+}
+
+function Unlock({ u }: { u: IngredientUnlock }) {
+  if (u.kind === 'start') return <>On the list from the start.</>
+  if (u.kind === 'talk') return <>Talk to the {u.npc} once his daughter has asked you to check on him.</>
+  if (u.kind === 'request') {
+    return (
+      <>Fulfill {u.npc}'s Villager Request:{u.items.map((it, i) => (
+        <span key={it.id}>{i > 0 && ', '}<Link to={`/items/${it.id}`}>{it.name}</Link> ×{it.qty}</span>
+      ))}.</>
+    )
+  }
+  return (
+    <>
+      Clear <Link to={`/quests/${u.quest}`}>{u.title}</Link> <span className="text-muted">({u.category} {u.stars})</span>
+      {u.via === 'talk' ? '; a villager hands it over when you next talk to them.' : '.'}
+    </>
   )
 }
 

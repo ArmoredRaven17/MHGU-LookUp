@@ -16,19 +16,115 @@ Read from the ROM (romfs table/ and eng/table/Kitchen_eng.gmd, catSkillData_eng.
 - Odds, read for the Food Skills page (C:/MHGU-Extract/food-skills/gen_meals.py, 0x1a64d4, 0x161f430): a set's
   first skill activates 80% of the time, its second 60%, its third never; with the chef Fired Up (the dish on the
   day's list) 100% / 70-90% / 30-70% by Canteen level; a Gourmet Voucher activates all three.
-Not read: which quest, request or rank unlocks each ingredient (the help text says quests, Hunter Rank and
-villagers' requests; the record behind it is in the game's code, not in a table).
+- Unlocks: an ingredient is on the list when its bit is set (word +0x97c of the save's kitchen block; tested by
+  0x1a607c, 45 bits). Three things set the bits:
+  1. The Canteen itself sets ingredients 0 and 1 every time it is used (0x1a4be0, 0x1a54c4): on the list from the
+     start.
+  2. The progress check 0x3e9bec, against two counters the save keeps (+0x3e0, +0x3e2). 0x50bf08 rebuilds them
+     from rQuestGroup: a counter reaches k+1 once every quest whose mAttribute1 is 0x18+k (Village counter) or
+     0x22+k (Hub counter) is cleared. Village thresholds come from the table at rodata 0x162461c ([u16
+     ingredient, u16 counter] x7); the Hub ones are immediates in the code (35 at 5, 41 at 7, 8 at 10).
+  3. NPC dialogue: rNpcTalkData (loc/arc/npc/talk.arc, one per NPC; 37-byte packed records, mIndex then
+     mPageAttribute, mTalkAttribute ... three 6-byte tags [u8 tag, u8, u16 A, u16 B], then u16 mAction1,
+     mAction1Param, mAction2, mAction2Param, mAction2Param2). mAction2 17-21 adds an ingredient (0x2477c4 ->
+     0x3f0720): group base 0 / 9 / 19 / 29 / 39 plus mAction2Param2 - 1. The page's conditions are on the
+     nearest record at or before it with a nonzero mTalkAttribute (the following records continue its
+     conversation). The tags (evaluator 0x244d34): 0x0b = quest B cleared (0x523084), 1 / 2 = talk flag A set /
+     not set, 0x29 = Villager Request B fulfilled (the bit 0x7a5400 sets when the request's items are handed over).
+     Villager Requests: rTradeDeliveryList (table/lobby/tradeDeliveryList in loc/arc/village/common.arc,
+     36-byte rows: u32 NpcName index, u32, ..., three [u16 item, u16 quantity] from +20); request B = row B-1.
+  Hot Heart's page needs talk flag 382, which the Harth Chief's daughter's page sets (npc_050 record 9); the
+  Harth Chief introduces himself on the page that gives it (npc_336 record 0).
 """
-import json, struct
+import json, struct, sys
 
 ROM = 'C:/MHGU-ROM/romfs/nativeNX/'
 FOOD = 'C:/MHGU-Extract/food-skills/'
+sys.path.insert(0, 'E:/offline/decode/lib')
+import mh                                             # noqa: E402
+
+TALK_ARC = ROM + 'loc/arc/npc/talk.arc'
+COMMON_ARC = ROM + 'loc/arc/village/common.arc'
+GROUP_BASE = {17: 0, 18: 9, 19: 19, 20: 29, 21: 39}     # mAction2 -> first ingredient of its group
+VILLAGE_TABLE = 0x162461c                             # [u16 ingredient, u16 Village counter] x7
+HUB_STEPS = [(35, 5), (41, 7), (8, 10)]               # 0x3e9ef8..0x3e9fc8: ingredient at Hub counter
+HOT_HEART_FLAG = 382
+
+
+def arc_file(path, cls):
+    d, ents = mh.arc_entries(path)
+    return [(e[0], mh.arc_extract(d, e)) for e in ents if e[1] == mh.thash(cls)]
+
+
+def progress_quests():
+    """{('Village' | 'Hub', counter value): [quest numbers whose clears raise the counter to it]}"""
+    g = arc_file(COMMON_ARC, 'rQuestGroup')[0][1]
+    out = {}
+    for i in range(struct.unpack_from('<I', g, 4)[0]):
+        q, a1 = struct.unpack_from('<IB', g, 8 + 7 * i)
+        if 0x18 <= a1 <= 0x21:
+            out.setdefault(('Village', a1 - 0x18 + 1), []).append(q)
+        elif 0x22 <= a1 <= 0x2e:
+            out.setdefault(('Hub', a1 - 0x22 + 1), []).append(q)
+    return out
+
+
+def unlocks(gmd, quest_info):
+    """[[way, ...] per ingredient]; a way is {'kind': 'start' | 'quest' | 'request' | 'talk', ...}."""
+    ways = [[] for _ in range(45)]
+    for i in (0, 1):
+        ways[i].append({'kind': 'start'})
+
+    def quest(no, via):
+        q = quest_info.get(no, {})
+        return {'kind': 'quest', 'via': via, 'quest': no, 'title': q.get('title', str(no)),
+                'category': q.get('category', ''), 'stars': q.get('stars', '')}
+
+    groups = progress_quests()
+    ro = open('C:/MHGU-ROM/exefs/main.rodata', 'rb').read()
+    village = [struct.unpack_from('<HH', ro, VILLAGE_TABLE - 0x13EF000 + 4 * k) for k in range(7)]
+    for side, steps in (('Village', village), ('Hub', HUB_STEPS)):
+        for ing, level in steps:
+            ways[ing] += [quest(q, 'progress') for q in groups[(side, level)]]
+
+    npc = gmd('NpcName_eng.gmd')
+    item = gmd('itemData_eng.gmd')
+    t = arc_file(COMMON_ARC, 'rTradeDeliveryList')[0][1]
+    requests = []
+    for i in range(struct.unpack_from('<I', t, 4)[0]):
+        r = t[8 + 36 * i: 8 + 36 * (i + 1)]
+        requests.append({'npc': npc[struct.unpack_from('<I', r, 0)[0]],
+                         'items': [{'id': x, 'name': item[2 * x], 'qty': n}
+                                   for x, n in (struct.unpack_from('<HH', r, 20 + 4 * k) for k in range(3)) if x]})
+
+    for name, d in sorted(arc_file(TALK_ARC, 'rNpcTalkData')):
+        n = struct.unpack_from('<I', d, 4)[0]
+        assert 8 + 37 * n == len(d), name
+        recs = [d[8 + 37 * i: 8 + 37 * (i + 1)] for i in range(n)]
+        for i, rec in enumerate(recs):
+            a2, _, p2 = struct.unpack_from('<3H', rec, 31)
+            if a2 not in GROUP_BASE:
+                continue
+            ing = GROUP_BASE[a2] + p2 - 1
+            head = next(recs[k] for k in range(i, -1, -1) if recs[k][5])
+            tags = [struct.unpack_from('<BxHH', head, 9 + 6 * k) for k in range(3)]
+            done = [b for tag, a, b in tags if tag == 0x0b]
+            req = [b for tag, a, b in tags if tag == 0x29]
+            if done:
+                ways[ing] += [quest(q, 'talk') for q in done]
+            elif req:
+                ways[ing] += [dict(kind='request', **requests[b - 1]) for b in req]
+            elif any(tag == 1 and a == HOT_HEART_FLAG for tag, a, b in tags):
+                ways[ing].append({'kind': 'talk', 'npc': npc[103]})
+            else:
+                raise ValueError(f'{name} record {i}: no condition read for ingredient {ing}')
+    return ways
 CHANCE = [{'normal': 80, 'fired': '100', 'gourmet': 100},
           {'normal': 60, 'fired': '70–90', 'gourmet': 100},
           {'normal': 0, 'fired': '30–70', 'gourmet': 100}]
 
 
-def build(gmd, write):
+def build(gmd, write, quest_info):
     K = gmd('Kitchen_eng.gmd')
     cats = gmd('catSkillData_eng.gmd')
     skill = lambda i: cats[3 * i]
@@ -67,7 +163,9 @@ def build(gmd, write):
         return [{'skill': skill(k), 'later': bool(o)} for k, o in
                 (struct.unpack_from('<2i', d, 8 + 8 * i) for i in range(struct.unpack_from('<I', d, 4)[0]))]
 
-    out = {'ingredients': ingredients, 'dishes': dishes, 'menus': {str(k): v for k, v in menus.items()},
+    ways = unlocks(gmd, quest_info)
+    assert all(ways), [ingredients[i] for i, w in enumerate(ways) if not w]
+    out = {'ingredients': ingredients, 'unlocks': ways, 'dishes': dishes, 'menus': {str(k): v for k, v in menus.items()},
            'daily': draw('kitchenListSkillRandom.kcr'), 'dailyDrink': draw('kitchenListSkillAlcohol.kca'),
            'odds': CHANCE, 'sauces': [K[48 + i] for i in range(5)]}
     write('canteen.json', out)

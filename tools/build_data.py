@@ -376,7 +376,9 @@ def item_category(r):
 def canteen():
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import build_canteen
-    build_canteen.build(gmd, write)
+    with open(os.path.join(OUT, 'quests.json'), encoding='utf8') as f:     # written by quests() above
+        info = {q['id']: q for q in json.load(f)}
+    build_canteen.build(gmd, write, info)
 
 
 # ── Items ───────────────────────────────────────────────────────────────────────────────────

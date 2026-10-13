@@ -33,8 +33,14 @@ export interface Dish {
   palico: Record<string, number>
   menu: number
 }
+export type IngredientUnlock =
+  | { kind: 'start' }
+  | { kind: 'quest'; via: 'progress' | 'talk'; quest: number; title: string; category: string; stars: string }
+  | { kind: 'request'; npc: string; items: { id: number; name: string; qty: number }[] }
+  | { kind: 'talk'; npc: string }
 export interface Canteen {
   ingredients: string[]
+  unlocks: IngredientUnlock[][]
   dishes: Dish[]
   menus: Record<string, { sauce: string; skills: string[] }[]>
   daily: { skill: string; later: boolean }[]
