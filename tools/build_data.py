@@ -17,17 +17,15 @@ Sources, per file:
 - arts.json     eng/table/hunterArtsData_eng.gmd: 4 strings per Art tier (name, name, short text,
                 full text); tier id = the row of table/hunterArtsData.hta. Which weapon an Art belongs
                 to is NOT read yet.
-- weapons.json  the per-class indexes of the MHGU Armor Viewer (docs/weapons/wNN.json), each built from
-                table/weaponNNBaseData / LevelData with its columns located against the Collection
-                Tracker (their `source` fields carry the detail); the forms' names and texts from
-                eng/table/weaponNNMsgData_eng.gmd (6 strings per row: name and text of three forms).
+- weapons.json, weapons/wNN.json   read from the weapon tables: see tools/build_weapons.py.
+- armor.json    the armor tables (layouts from the Collection Tracker's build-armor-data.mjs) with the
+                names from eng/table/armorSeriesData_eng.gmd: see armor() below.
 - items.json    eng/table/itemData_eng.gmd (2 strings per item: name, description).
 """
-import glob, json, os, re, struct, sys
+import glob, json, os, struct, sys
 
 ROM = 'C:/MHGU-ROM/romfs/nativeNX/'
 LEDGER = 'C:/MHGU-Extract/skills-ledger/plain'
-VIEWER = 'C:/Coding Repos/mhgu-armor-viewer/docs/weapons'
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public', 'data')
 
 
@@ -45,7 +43,7 @@ def rows(name, stride):
 
 
 def write(name, data):
-    os.makedirs(OUT, exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.join(OUT, name)), exist_ok=True)
     with open(os.path.join(OUT, name), 'w', encoding='utf8') as f:
         json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
     print(name, os.path.getsize(os.path.join(OUT, name)), 'bytes')
@@ -113,40 +111,119 @@ def arts():
 
 
 # ── Weapons ─────────────────────────────────────────────────────────────────────────────────
-CLASSES = ['w00', 'w07', 'w01', 'w11', 'w02', 'w12', 'w03', 'w09', 'w08', 'w14', 'w13', 'w06', 'w04', 'w10']
-SHELL = {0: 'Normal', 1: 'Wide', 2: 'Long'}
-
-
 def weapons():
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import build_weapons
+    build_weapons.build(gmd, rows, write, item_names(), point_categories())
+
+
+# ── Armor ───────────────────────────────────────────────────────────────────────────────────
+# The record layouts are the Collection Tracker's (scripts/build-armor-data.mjs, every field checked
+# there against mhgu.db); the names here are the ROM's English text instead of mhgu.db's.
+SLOTS = ['Head', 'Chest', 'Arms', 'Waist', 'Legs']
+RANKS = ['Low Rank', 'High Rank', 'G Rank']
+
+
+def s8(v):
+    return v - 256 if v > 127 else v
+
+
+def u16(r, o):
+    return struct.unpack_from('<H', r, o)[0]
+
+
+def item_names():
+    s = gmd('itemData_eng.gmd')
+    return {i: s[2 * i] for i in range(len(s) // 2)}
+
+
+def point_categories():
+    """Material-point categories (a recipe can cost N points of any material of a kind): the name from
+    itemCategoryTypeData_eng.gmd, the rank from table/itemCategoryTypeData.ict (7-byte rows, +6 = 0 Low,
+    1 High, 2 G; checked against mhgu.db's 'LR/HR/G <name> Materials', 277 of 277)."""
+    s = gmd('itemCategoryTypeData_eng.gmd')
+    return {i: f'{s[i]} ({RANKS[r[6]]})' for i, r in enumerate(rows('itemCategoryTypeData.ict', 7)) if i}
+
+
+def series_label(names):
+    """A set's label: the words its pieces' names share at the start and the end
+    (Leather Headgear / Leather Vest -> Leather; Rathalos Helm S / Rathalos Mail S -> Rathalos S)."""
+    words = [n.split() for n in names]
+    if len(words) == 1:
+        return names[0]
+    def shared(lists):
+        out = []
+        for ws in zip(*lists):
+            if len(set(ws)) > 1:
+                break
+            out.append(ws[0])
+        return out
+    head = shared(words)
+    tail = shared([w[len(head):][::-1] for w in words])[::-1]
+    label = ' '.join(head + tail)
+    return label if head and len(head) + len(tail) < min(len(w) for w in words) else names[0]
+
+
+def armor():
+    names = gmd('armorSeriesData_eng.gmd')              # 10 per series: 5 piece names, 5 texts
+    trees = gmd('skillTypeData_eng.gmd')
+    item, cat = item_names(), point_categories()
+    curves = [[v for v in r if v] for r in rows('armorBuildData.abd', 20)]
+
+    create = []                                         # per slot: series -> [[item, qty]]
+    for si in range(5):
+        m = {}
+        for r in rows(f'armorCreateA0{si}.acrd', 42):
+            # +3 of each entry is a flag (0, 1 or 2) whose meaning is not read yet; left out.
+            mats = [[item[u16(r, o)], r[o + 2]] for o in range(10, 38, 4) if u16(r, o)]
+            for o in (0, 2, 4, 6):
+                if u16(r, o):
+                    m[u16(r, o)] = mats
+        create.append(m)
+
+    upgrades = {}                                       # series -> {level: [[name, qty(, 'pts')]]}
+    for r in rows('armorProcessA00.apd', 38):
+        mats = [[item[u16(r, o)], r[o + 2]] for o in (10, 13, 16, 19, 26, 29, 32, 35) if u16(r, o)]
+        if u16(r, 22):
+            mats.append([cat[u16(r, 22)], u16(r, 24), 'pts'])
+        for o in (0, 2):
+            if u16(r, o):
+                upgrades.setdefault(u16(r, o), {})[u16(r, 8)] = mats
+
     out = []
-    for cls in CLASSES:
-        d = json.load(open(f'{VIEWER}/{cls}.json', encoding='utf8'))
-        if cls == 'w12':                        # the note colour names, as the index's source records them
-            m = re.search(r'\((1 White[^)]*)\)', d['source']['notes'])
-            NOTE = {int(k): v.strip() for k, v in (x.strip().split(' ', 1) for x in m.group(1).split(','))}
-            assert len(NOTE) == 8, NOTE
-        msg = gmd(f'weapon{cls[1:]}MsgData_eng.gmd')
-        ws = []
-        for w in sorted(d['weapons'], key=lambda w: (w['order'], w['row'])):
-            if not w.get('named'):
+    for sid, r in enumerate(rows('armorSeriesData.asd', 127)):
+        assert u16(r, 0) == sid
+        pieces = []
+        for si, slot in enumerate(SLOTS):
+            name = names[10 * sid + si]
+            if name in ('(None)', 'DUMMY'):
                 continue
-            r = w['row']
-            forms = []
-            for k in range(3):
-                name, text = msg[6 * r + 2 * k], msg[6 * r + 2 * k + 1]
-                if name and name != w['name'] or k == 0:
-                    forms.append({'name': name, 'text': text})
-            assert forms[0]['name'] == w['name'], (cls, r, forms[0]['name'], w['name'])
-            e = {'row': r, 'name': w['name'], 'forms': forms, 'rarity': w['rarity'], 'forge': w['forge']}
-            if w.get('element'): e['element'] = w['element']
-            if 'phial' in w: e['phial'] = w['phial']
-            if 'shell' in w: e['shell'] = {'type': SHELL[w['shell']['type']], 'level': w['shell']['level'] + 1}
-            if 'notes' in w: e['notes'] = [NOTE[x] for x in w['notes']]
-            if 'charges' in w: e['charges'] = w['charges']
-            ws.append(e)
-        out.append({'id': cls, 'name': d['name'], 'weapons': ws})
-        print(f'  {cls} {d["name"]}: {len(ws)}')
-    write('weapons.json', out)
+            skills = [[trees[2 * u16(r, o)], s8(r[o + 2])]
+                      for o in (28 + si * 15 + k * 3 for k in range(5)) if u16(r, o)]
+            p = {'slot': slot, 'name': name, 'desc': names[10 * sid + 5 + si], 'slots': r[108 + si], 'skills': skills}
+            if sid in create[si]:
+                p['create'] = create[si][sid]
+            pieces.append(p)
+        if not pieces:
+            continue
+        defense = [r[106]]
+        for gain in curves[r[107]]:
+            defense.append(defense[-1] + gain)
+        up = upgrades.get(sid, {})
+        assert not up or max(up) == len(defense), (sid, max(up), len(defense))   # levels agree
+        bm, gn = r[15], r[16]
+        out.append({
+            'id': sid, 'name': series_label([p['name'] for p in pieces]), 'rarity': r[103] + 1,
+            'class': 'Both' if bm and gn else 'Gunner' if gn else 'Blademaster',
+            'gender': 'Both' if r[13] and r[14] else 'Male' if r[13] else 'Female',
+            'zenny': u16(r, 17),
+            'res': [s8(r[o]) for o in range(23, 28)],
+            'defense': defense,                     # defense at level 1, 2, ...
+            'pieces': pieces,
+            'upgrades': [up[lv] for lv in sorted(up) if lv > 1],   # the cost of reaching level 2, 3, ...
+        })
+    write('armor.json', out)
+    print('  armor sets', len(out), 'pieces', sum(len(s['pieces']) for s in out))
 
 
 # ── Items ───────────────────────────────────────────────────────────────────────────────────
@@ -168,4 +245,4 @@ def items():
 
 
 if __name__ == '__main__':
-    skills(); styles(); arts(); weapons(); items()
+    skills(); styles(); arts(); weapons(); armor(); items()

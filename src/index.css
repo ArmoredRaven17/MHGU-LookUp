@@ -123,3 +123,8 @@ a { color: var(--accent); }
 .md-table table { border-collapse: collapse; }
 .md-table th { text-align: left; vertical-align: bottom; }
 .md-table td { vertical-align: top; }
+.chip {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); padding: 2px 8px; cursor: pointer;
+}
+.chip.active { border-color: var(--accent); color: var(--accent); background: var(--header-bg); }

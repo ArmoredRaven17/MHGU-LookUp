@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import { NAV } from './nav'
 import WeaponsPage from './pages/WeaponsPage'
+import ArmorPage from './pages/ArmorPage'
 import ArmorSkillsPage from './pages/ArmorSkillsPage'
 import StylesPage from './pages/StylesPage'
 import HunterArtsPage from './pages/HunterArtsPage'
@@ -22,6 +23,8 @@ export default function App() {
           <Route path="weapons"           element={<WeaponsPage />} />
           <Route path="weapons/:cls"      element={<WeaponsPage />} />
           <Route path="weapons/:cls/:row" element={<WeaponsPage />} />
+          <Route path="armor"             element={<ArmorPage />} />
+          <Route path="armor/:id"         element={<ArmorPage />} />
           <Route path="armorskills"       element={<ArmorSkillsPage />} />
           <Route path="armorskills/:id"   element={<ArmorSkillsPage />} />
           <Route path="styles"            element={<StylesPage />} />

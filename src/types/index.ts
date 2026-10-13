@@ -36,9 +36,36 @@ export interface HunterArt {
   full: string
 }
 
+// A material: [name, quantity], or [category name, points, 'pts'] for a material-point cost.
+export type Material = [string, number] | [string, number, 'pts']
+
 export interface WeaponForm {
   name: string
   text: string
+  from: number        // the level this name starts at
+}
+
+export interface WeaponLevel {
+  lv: number
+  raw: number
+  aff: number
+  defense: number
+  slots: number
+  ele?: number
+  ele2?: number
+  sharp?: [number, number]          // [row of the sharpness table, gauge length at Handicraft +0]
+  phialValue?: number
+  shellLv?: number
+  notes?: string[]
+  bow?: { arc: string; open: number; shots: string[]; coatings: string[] }
+  gun?: {
+    reload: string; recoil: string; deviation: string
+    ammo: [string, number][]
+    internal: [string, number, number][]   // ammo, total, clip
+    crouch?: [string, number][]            // Heavy Bowgun: ammo, capacity
+    rapid?: [string, number, number, string][]  // Light Bowgun: ammo, shots, power %, wait
+  }
+  cost?: Material[]                 // to reach this level (level 1: upgrading into the weapon)
 }
 
 export interface Weapon {
@@ -46,18 +73,48 @@ export interface Weapon {
   name: string
   forms: WeaponForm[]
   rarity: number
-  forge: boolean
+  depth: number                     // in the upgrade tree
   element?: string
+  element2?: string
   phial?: string
-  shell?: { type: string; level: number }
-  notes?: string[]
-  charges?: number
+  shelling?: string
+  create?: { level: number; mats: Material[] }[]
+  from?: { row: number; level: number }
+  into: { row: number; level: number }[]
+  levels: WeaponLevel[]
 }
 
 export interface WeaponClass {
   id: string
   name: string
   weapons: Weapon[]
+}
+
+export interface WeaponIndex {
+  classes: { id: string; name: string; count: number }[]
+  sharpness: number[][]             // 7 cumulative colour ends per row: red .. purple
+}
+
+export interface ArmorPiece {
+  slot: string
+  name: string
+  desc: string
+  slots: number
+  skills: [string, number][]
+  create?: Material[]
+}
+
+export interface ArmorSet {
+  id: number
+  name: string
+  rarity: number
+  class: 'Blademaster' | 'Gunner' | 'Both'
+  gender: 'Male' | 'Female' | 'Both'
+  zenny: number
+  res: number[]                     // fire, water, thunder, ice, dragon
+  defense: number[]                 // per level
+  pieces: ArmorPiece[]
+  upgrades: Material[][]            // the cost of level 2, 3, ...
 }
 
 export interface Item {

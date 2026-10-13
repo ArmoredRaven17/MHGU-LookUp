@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { useTextScale } from '../theme/textScale'
 
 const TOPICS: [string, string][] = [
-  ['Weapons', 'Pick a weapon class in the dropdown, then a weapon. Each shows its rarity, element and the class\'s own details (phial, shelling, notes, charge levels), and every name the weapon takes as it is upgraded, with the game\'s description of each.'],
+  ['Weapons', "Pick a weapon class in the dropdown; the list follows the upgrade tree, each weapon under the one it upgrades from. A weapon shows every level: pick a level to see its attack, affinity, element, slots, sharpness (with Handicraft +1 and +2) and the class's own details (phial, shelling, notes, Bow charge shots and coatings, bowgun ammo, rapid and crouching fire), what it costs to forge or upgrade, and what it upgrades into."],
+  ['Armor', "Every armor set, Blademaster and Gunner, with each piece's slots, skill points and forge materials, the set's defense, resistances and upgrade costs, and the game's description of each piece. Search finds a set by a piece or a skill too."],
   ['Armor Skills', 'The list is the skill trees found on armor and decorations. A tree shows the skill each point total activates, the game\'s description, and a detailed explanation of what each skill actually does. Search finds a tree by its skills\' names too.'],
   ['Hunting Styles', 'The six styles in the game\'s own words, with what each style\'s SP State does.'],
   ['Hunter Arts', 'Every Hunter Art with its tiers, and the game\'s short and full description of each tier.'],

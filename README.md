@@ -11,13 +11,14 @@ Created by **Armored_Raven**.
 
 | Tab | From the game |
 |---|---|
-| Weapons | every named weapon of the 14 classes: its names as it is upgraded and the game's text for each, rarity, element, and the class's own details (Switch Axe / Charge Blade phial, Gunlance shelling, Hunting Horn notes, Bow charge levels) |
+| Weapons | every weapon of the 14 classes in upgrade-tree order, level by level: attack, affinity, element, defense, slots, sharpness (with Handicraft), the class's own data (phials, shelling, Hunting Horn notes, Bow arc / charge shots / coatings, bowgun ammo, internal ammo, rapid and crouching fire), forge recipes, upgrade costs and what each weapon upgrades into, with every name it takes and the game's text for each |
+| Armor | every set: each piece's slots, skill points, forge materials and description, the set's defense per level, resistances and upgrade costs |
 | Armor Skills | every skill tree, the skill each point total activates, the in-game descriptions, and the detailed explanations written for [MHGU Armor Skills Explained](https://armoredraven17.github.io/mhgu-armor-skills-explained/) |
 | Hunting Styles | the six styles' summaries, descriptions and SP State text |
 | Hunter Arts | every Art and its tiers, with the short and full in-game text |
 | Items | every item's in-game description |
 
-Monsters, Armor, Decorations, Quests, Gathering, Combo List, Kitchen and Palico are in the nav as
+Monsters, Decorations, Quests, Gathering, Combo List, Kitchen and Palico are in the nav as
 *coming soon*: each is filled once its tables have been read from the ROM.
 
 ## Data
@@ -30,8 +31,11 @@ every field. Re-run it after any change, writing to a scratch folder first to di
 python tools/build_data.py C:/scratch/lookup-data
 ```
 
-The weapon fields come from the per-class indexes of the MHGU Armor Viewer, whose columns were located
-against the Collection Tracker; community data is only ever a check, never a source.
+The weapon tables were decoded column by column against the Collection Tracker's files, which are
+Kiranico / mhgu.db derived: [tools/build_weapons.py](tools/build_weapons.py) lists every column and its match
+count, and `python tools/check_weapons.py` re-runs the whole comparison (every field matches on every level,
+except 39 affinity values where the ROM differs and 7 rows the ROM names DUMMY). The armor tables use the
+Collection Tracker's ROM decoding with the ROM's English names. Community data is only ever a check.
 
 ## Build and run
 

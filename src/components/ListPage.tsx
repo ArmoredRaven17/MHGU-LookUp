@@ -10,6 +10,7 @@ export interface ListEntry {
   label: string
   sub?: string         // a muted second line
   search?: string      // extra text the search box matches, beyond the label
+  indent?: number      // depth in a tree (the weapons' upgrade tree); dropped while searching
 }
 
 // The list + detail shell every lookup tab shares (from the MHFU LookUp): a resizable,
@@ -56,6 +57,7 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
             return (
               <button key={e.key} onClick={() => navigate(`${base}/${e.key}`)} style={{
                 display: 'block', width: '100%', padding: '5px 12px',
+                paddingLeft: 12 + (search.trim() ? 0 : Math.min(e.indent ?? 0, 8) * 10),
                 background: active ? 'var(--header-bg)' : 'transparent',
                 border: 'none', borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
                 color: active ? 'var(--accent)' : 'var(--text)',

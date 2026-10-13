@@ -17,7 +17,7 @@ export default function BookmarksPage() {
       <div style={{ padding: '16px 16px 8px' }}>
         <h1 style={{ margin: 0, fontSize: 22 * scale, fontWeight: 700 }}>Bookmarks</h1>
         <p style={{ margin: '2px 0 0', fontSize: 13 * scale, color: 'var(--muted)' }}>
-          Bookmark a weapon, skill tree, Hunter Art or item on its page, then click it here to jump straight back to it.
+          Bookmark a weapon, armor set, skill tree, Hunter Art or item on its page, then click it here to jump straight back to it.
         </p>
       </div>
       {groups.length === 0 ? (

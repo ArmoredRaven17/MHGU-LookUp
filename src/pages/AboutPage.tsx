@@ -10,8 +10,8 @@ export default function AboutPage() {
       <div style={{ maxWidth: 720 }}>
         <h1 style={{ margin: '0 0 12px', fontSize: 22 * scale, fontWeight: 700 }}>MHGU LookUp</h1>
         <P>
-          A reference app for <strong>Monster Hunter Generations Ultimate</strong>: weapons, armor skills, Hunting
-          Styles, Hunter Arts and items, with more tabs filled in as their data is read from the game.
+          A reference app for <strong>Monster Hunter Generations Ultimate</strong>: weapons, armor, armor skills,
+          Hunting Styles, Hunter Arts and items, with more tabs filled in as their data is read from the game.
           Created by <strong>Armored_Raven</strong>, as the GU sibling of the MHFU LookUp.
         </P>
 
