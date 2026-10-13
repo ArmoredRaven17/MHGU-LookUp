@@ -12,6 +12,7 @@ const TOPICS: [string, string][] = [
   ['Quests', "Every quest on the boards: Village, Hub (Low, High and G Rank), Special Permit, Arena, Event and Training, grouped by stars or rank. A quest shows its objective, subquest, failure conditions, locale, time, fee, reward, requirements, monsters and the client's summary, all in the game's words."],
   ['Gathering', "Every locale's gathering, mining and insect points, area by area and rank by rank, with each item's chance per gather. Search an item to find every locale it can be gathered in."],
   ['Items', "Every item with its in-game description, price, and where to get it: the shop, combining, monsters (carves, captures, part breaks, shiny drops), gathering points and quest rewards, with the chance of each. Decorations have their own tab."],
+  ['Canteen', "Every dish with its two ingredients, its effects for you and your Palico, and the Felyne skills each sauce gives, with the chance each activates. Switch to Ingredients to see every dish an ingredient makes, and the Daily Skills."],
   ['Combo List', 'Every combination with its base success rate; click an item to open it.'],
   ['Bookmarks and Notes', 'The bookmark button beside a title saves the page to Bookmarks. The Notes box at the bottom of a page keeps your own notes; the Notes tab lists them all. Both stay on this device.'],
   ['The list panel', 'Drag the bar beside the list to make it wider or narrower; click it to hide the list.'],

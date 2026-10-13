@@ -34,6 +34,7 @@ Sources, per file:
 - quests.json   the quest files and their text: see tools/build_quests.py.
 - gathering.json  every map's gathering points per rank: see tools/build_gathering.py.
 - sources.json  where every item comes from: see tools/build_sources.py.
+- canteen.json  the Canteen's ingredients, dishes, effects and sauces: see tools/build_canteen.py.
 - items.json    eng/table/itemData_eng.gmd (2 strings per item: name, description); the jewels are in
                 decorations.json instead.
 """
@@ -371,6 +372,13 @@ def item_category(r):
     return c
 
 
+# ── Canteen ─────────────────────────────────────────────────────────────────────────────────
+def canteen():
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import build_canteen
+    build_canteen.build(gmd, write)
+
+
 # ── Items ───────────────────────────────────────────────────────────────────────────────────
 def items(skip=()):
     s = gmd('itemData_eng.gmd')
@@ -405,4 +413,5 @@ if __name__ == '__main__':
     reachable, rewarded = quests(names)
     gathered = gathering(reachable)
     sources(names, gathered, rewarded)
+    canteen()
     items(decorations())

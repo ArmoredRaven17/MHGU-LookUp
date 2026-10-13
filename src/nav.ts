@@ -19,7 +19,7 @@ export const NAV: NavItem[] = [
   { path: 'gathering',   label: 'Gathering' },
   { path: 'items',       label: 'Items' },
   { path: 'combos',      label: 'Combo List' },
-  { path: 'kitchen',     label: 'Kitchen', soon: true },
+  { path: 'canteen',     label: 'Canteen' },
   { path: 'palico',      label: 'Palico', soon: true },
   { path: 'settings',    label: 'Settings' },
   { path: 'help',        label: 'Help' },
@@ -36,6 +36,7 @@ export const ENTITY_SECTIONS: { type: string; header: string }[] = [
   { type: 'art',        header: 'Hunter Arts' },
   { type: 'quest',      header: 'Quests' },
   { type: 'gathering',  header: 'Gathering' },
+  { type: 'dish',       header: 'Canteen Dishes' },
   { type: 'item',       header: 'Items' },
 ]
 

@@ -25,4 +25,22 @@ export const loadQuests      = () => load<Quest[]>('quests.json')
 export const loadGathering   = () => load<GatherMap[]>('gathering.json')
 export const loadSources     = () => load<Record<string, [string, string, string, number][]>>('sources.json')
 export const loadCombos      = () => load<{ a: string; b: string; result: string; rate: number; ids: [number, number, number] }[]>('combos.json')
+export interface Dish {
+  name: string
+  ingredients: [string, string] | null
+  level: number
+  hunter: Record<string, number>
+  palico: Record<string, number>
+  menu: number
+}
+export interface Canteen {
+  ingredients: string[]
+  dishes: Dish[]
+  menus: Record<string, { sauce: string; skills: string[] }[]>
+  daily: { skill: string; later: boolean }[]
+  dailyDrink: { skill: string; later: boolean }[]
+  odds: { normal: number; fired: string; gourmet: number }[]
+  sauces: string[]
+}
+export const loadCanteen     = () => load<Canteen>('canteen.json')
 export const loadItems       = () => load<Item[]>('items.json')
