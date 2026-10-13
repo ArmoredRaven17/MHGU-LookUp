@@ -20,7 +20,12 @@ Sources, per file:
 - weapons.json, weapons/wNN.json   read from the weapon tables: see tools/build_weapons.py.
 - armor.json    the armor tables (layouts from the Collection Tracker's build-armor-data.mjs) with the
                 names from eng/table/armorSeriesData_eng.gmd: see armor() below.
-- items.json    eng/table/itemData_eng.gmd (2 strings per item: name, description).
+- decorations.json  table/decoData.deco (5-byte rows: slots, skill tree, points, second tree, signed
+                points; row i is item 2638 + i) and table/decoCreate.dcd (16-byte rows: u16 jewel item,
+                u16 recipe number, four [u16 item, qty]); names and texts from itemData_eng.gmd. All 242
+                jewels and their 275 recipes match mhgu.db; the 9 rows the ROM names DUMMY are left out.
+- items.json    eng/table/itemData_eng.gmd (2 strings per item: name, description); the jewels are in
+                decorations.json instead.
 """
 import glob, json, os, struct, sys
 
@@ -226,14 +231,40 @@ def armor():
     print('  armor sets', len(out), 'pieces', sum(len(s['pieces']) for s in out))
 
 
+# ── Decorations ─────────────────────────────────────────────────────────────────────────────
+DECO_FIRST_ITEM = 2638
+
+
+def decorations():
+    s_ = gmd('itemData_eng.gmd')
+    trees = gmd('skillTypeData_eng.gmd')
+    item = item_names()
+    recipes = {}
+    for r in rows('decoCreate.dcd', 16):
+        recipes.setdefault(u16(r, 0), []).append([[item[u16(r, o)], r[o + 2]] for o in (4, 7, 10, 13) if u16(r, o)])
+    out = []
+    for i, r in enumerate(rows('decoData.deco', 5)):
+        iid = DECO_FIRST_ITEM + i
+        if s_[2 * iid] == 'DUMMY':
+            continue
+        skills = [[trees[2 * r[1]], s8(r[2])]] + ([[trees[2 * r[3]], s8(r[4])]] if r[3] else [])
+        out.append({'id': iid, 'name': s_[2 * iid], 'desc': s_[2 * iid + 1], 'slots': r[0],
+                    'skills': skills, 'recipes': recipes.get(iid, [])})
+    write('decorations.json', out)
+    print('  decorations', len(out))
+    return {DECO_FIRST_ITEM + i for i in range(len(rows('decoData.deco', 5)))}
+
+
 # ── Items ───────────────────────────────────────────────────────────────────────────────────
-def items():
+def items(skip=()):
     s = gmd('itemData_eng.gmd')
     out, seen = [], set()
     for i in range(1, len(s) // 2):
         name, desc = s[2 * i], s[2 * i + 1]
         if not name.strip() or name.lower() == 'dummy' or name in ('--------', '(No Item)', '(None)') or set(name) <= set('-? '):
             continue
+        if i in skip:
+            continue                       # a decoration: listed on its own tab
         if desc == 'Program Data':
             continue                       # the game's internal copies (their text says so)
         if (name, desc) in seen:
@@ -245,4 +276,4 @@ def items():
 
 
 if __name__ == '__main__':
-    skills(); styles(); arts(); weapons(); armor(); items()
+    skills(); styles(); arts(); weapons(); armor(); items(decorations())

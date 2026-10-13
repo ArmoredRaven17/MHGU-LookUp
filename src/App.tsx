@@ -4,6 +4,7 @@ import { NAV } from './nav'
 import WeaponsPage from './pages/WeaponsPage'
 import ArmorPage from './pages/ArmorPage'
 import ArmorSkillsPage from './pages/ArmorSkillsPage'
+import DecorationsPage from './pages/DecorationsPage'
 import StylesPage from './pages/StylesPage'
 import HunterArtsPage from './pages/HunterArtsPage'
 import ItemsPage from './pages/ItemsPage'
@@ -27,6 +28,8 @@ export default function App() {
           <Route path="armor/:id"         element={<ArmorPage />} />
           <Route path="armorskills"       element={<ArmorSkillsPage />} />
           <Route path="armorskills/:id"   element={<ArmorSkillsPage />} />
+          <Route path="decorations"       element={<DecorationsPage />} />
+          <Route path="decorations/:id"   element={<DecorationsPage />} />
           <Route path="styles"            element={<StylesPage />} />
           <Route path="arts"              element={<HunterArtsPage />} />
           <Route path="arts/:id"          element={<HunterArtsPage />} />

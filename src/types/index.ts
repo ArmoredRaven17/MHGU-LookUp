@@ -122,3 +122,12 @@ export interface Item {
   name: string
   desc: string
 }
+
+export interface Decoration {
+  id: number                        // its item id
+  name: string
+  desc: string
+  slots: number
+  skills: [string, number][]
+  recipes: Material[][]
+}

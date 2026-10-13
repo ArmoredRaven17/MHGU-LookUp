@@ -12,7 +12,7 @@ export const NAV: NavItem[] = [
   { path: 'weapons',     label: 'Weapons' },
   { path: 'armor',       label: 'Armor' },
   { path: 'armorskills', label: 'Armor Skills' },
-  { path: 'decorations', label: 'Decorations', soon: true },
+  { path: 'decorations', label: 'Decorations' },
   { path: 'styles',      label: 'Hunting Styles' },
   { path: 'arts',        label: 'Hunter Arts' },
   { path: 'quests',      label: 'Quests', soon: true },
@@ -31,6 +31,7 @@ export const ENTITY_SECTIONS: { type: string; header: string }[] = [
   { type: 'weapon',     header: 'Weapons' },
   { type: 'armor',      header: 'Armor' },
   { type: 'armorskill', header: 'Armor Skills' },
+  { type: 'decoration', header: 'Decorations' },
   { type: 'art',        header: 'Hunter Arts' },
   { type: 'item',       header: 'Items' },
 ]
