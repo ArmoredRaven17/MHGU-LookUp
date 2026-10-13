@@ -24,4 +24,5 @@ export const loadMonsters    = () => load<{ zoneTypes: string[]; classes: string
 export const loadQuests      = () => load<Quest[]>('quests.json')
 export const loadGathering   = () => load<GatherMap[]>('gathering.json')
 export const loadSources     = () => load<Record<string, [string, string, string, number][]>>('sources.json')
+export const loadCombos      = () => load<{ a: string; b: string; result: string; rate: number; ids: [number, number, number] }[]>('combos.json')
 export const loadItems       = () => load<Item[]>('items.json')

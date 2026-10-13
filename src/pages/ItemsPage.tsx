@@ -8,8 +8,11 @@ import NotesBox from '../components/NotesBox'
 import GameText from '../components/GameText'
 import { useTextScale } from '../theme/textScale'
 
-type Source = [string, string, string, number]   // kind, where, detail, percent
-const KINDS = ['Monster', 'Gathering', 'Quest reward']
+type Source = [string, string, string, number | null]   // kind, where, detail, percent
+const KINDS = ['Shop', 'Combining', 'Monster', 'Gathering', 'Quest reward']
+const HEADINGS: Record<string, string> = {
+  Shop: 'Shop', Combining: 'Combining', Monster: 'Monsters', Gathering: 'Gathering', 'Quest reward': 'Quest Rewards',
+}
 
 export default function ItemsPage() {
   const { id } = useParams()
@@ -35,6 +38,11 @@ export default function ItemsPage() {
           <Section title="In-Game Description">
             <GameText text={item.desc} style={{ margin: 0, fontSize: 14 * scale }} />
           </Section>
+          <Section title="Item">
+            <p style={{ margin: 0, fontSize: 13 * scale }}>
+              {item.buy > 0 && <>Buy {item.buy.toLocaleString()}z · </>}Sell {item.sell.toLocaleString()}z · Carry up to {item.carry}
+            </p>
+          </Section>
           <Section title="Where to Get It">
             <Sources list={sources[String(item.id)] ?? []} />
           </Section>
@@ -55,14 +63,15 @@ function Sources({ list }: { list: Source[] }) {
     const by = new Map<string, Source[]>()
     for (const s of list) if (s[0] === kind) by.set(s[1], [...(by.get(s[1]) ?? []), s])
     const rows = [...by.entries()]
-      .map(([where, ss]) => ({ where, ss: ss.sort((a, b) => b[3] - a[3]), best: Math.max(...ss.map(s => s[3])) }))
+      .map(([where, ss]) => ({ where, ss: ss.sort((a, b) => (b[3] ?? 0) - (a[3] ?? 0)), best: Math.max(...ss.map(s => s[3] ?? 0)) }))
       .sort((a, b) => b.best - a.best || a.where.localeCompare(b.where))
     return { kind, rows }
   }).filter(g => g.rows.length), [list])
 
   if (!groups.length) {
     return <p className="text-muted" style={{ margin: 0, fontSize: 13 * scale }}>
-      No source read from the game yet. (Read so far: monster carves, captures and breaks, gathering, quest rewards.)
+      No source read from the game yet. (Read so far: the item shop, combining, monster carves, captures and breaks,
+      gathering, quest rewards.)
     </p>
   }
   return (
@@ -73,7 +82,7 @@ function Sources({ list }: { list: Source[] }) {
         return (
           <div key={g.kind} style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 13 * scale, fontWeight: 600, marginBottom: 4 }}>
-              {g.kind === 'Monster' ? 'Monsters' : g.kind === 'Quest reward' ? 'Quest Rewards' : 'Gathering'}
+              {HEADINGS[g.kind]}
               <span className="text-muted" style={{ fontWeight: 400 }}> · {g.rows.length}</span>
             </div>
             <table style={{ borderCollapse: 'collapse', width: '100%' }}>
@@ -84,7 +93,7 @@ function Sources({ list }: { list: Source[] }) {
                     <td className="tbl-cell" style={{ fontSize: 12 * scale }}>
                       {r.ss.map((s, i) => (
                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                          <span className="text-muted">{s[2]}</span><span>{s[3]}%</span>
+                          <span className="text-muted">{s[2]}</span><span>{s[3] != null ? `${s[3]}%` : ''}</span>
                         </div>
                       ))}
                     </td>

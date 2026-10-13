@@ -18,7 +18,7 @@ export const NAV: NavItem[] = [
   { path: 'quests',      label: 'Quests' },
   { path: 'gathering',   label: 'Gathering' },
   { path: 'items',       label: 'Items' },
-  { path: 'combos',      label: 'Combo List', soon: true },
+  { path: 'combos',      label: 'Combo List' },
   { path: 'kitchen',     label: 'Kitchen', soon: true },
   { path: 'palico',      label: 'Palico', soon: true },
   { path: 'settings',    label: 'Settings' },

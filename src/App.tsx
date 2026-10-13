@@ -10,6 +10,7 @@ import StylesPage from './pages/StylesPage'
 import HunterArtsPage from './pages/HunterArtsPage'
 import QuestsPage from './pages/QuestsPage'
 import GatheringPage from './pages/GatheringPage'
+import CombosPage from './pages/CombosPage'
 import ItemsPage from './pages/ItemsPage'
 import BookmarksPage from './pages/BookmarksPage'
 import NotesPage from './pages/NotesPage'
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="quests/:id"        element={<QuestsPage />} />
           <Route path="gathering"         element={<GatheringPage />} />
           <Route path="gathering/:id"     element={<GatheringPage />} />
+          <Route path="combos"            element={<CombosPage />} />
           <Route path="items"             element={<ItemsPage />} />
           <Route path="items/:id"         element={<ItemsPage />} />
           <Route path="bookmarks"         element={<BookmarksPage />} />

@@ -328,12 +328,13 @@ def gathering(reachable):
 def sources(monster_names, gathered, rewarded):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import build_sources
-    build_sources.build(write, monster_names, gathered, rewarded)
+    build_sources.build(write, monster_names, gathered, rewarded, item_names())
 
 
 # ── Items ───────────────────────────────────────────────────────────────────────────────────
 def items(skip=()):
     s = gmd('itemData_eng.gmd')
+    itm = open(ROM + 'table/itemData.itm', 'rb').read()      # 44-byte rows: +6 carry, +19 sell, +23 buy
     out, seen = [], set()
     for i in range(1, len(s) // 2):
         name, desc = s[2 * i], s[2 * i + 1]
@@ -346,7 +347,9 @@ def items(skip=()):
         if (name, desc) in seen:
             continue                       # the same item twice (the ammo appears once per gun kind)
         seen.add((name, desc))
-        out.append({'id': i, 'name': name, 'desc': desc})
+        r = itm[8 + 44 * i: 8 + 44 * (i + 1)]
+        out.append({'id': i, 'name': name, 'desc': desc, 'carry': r[6],
+                    'buy': struct.unpack_from('<I', r, 23)[0], 'sell': struct.unpack_from('<I', r, 19)[0]})
     write('items.json', out)
     print('  items', len(out))
 

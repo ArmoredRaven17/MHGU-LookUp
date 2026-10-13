@@ -14,6 +14,12 @@ Each source is [kind, where, detail, percent]. Read from the ROM:
   up to 18 [u8 code, u8 n] (code = 10 x part + band), then from +38 lists of [u8 percent, u8 quantity, u16 item]
   ending 0xff. Per band: the capture list, then one break list per part of that band, in the header's order.
   Located against mhgu.db (capture and break lists). The game numbers parts; it never names them.
+- Combining: table/itemPreData.itp (24-byte rows: u16 index, u32 ingredient, u32 ingredient, u32 result, u8 success
+  percent, u8 amount type -> table/itemPreTypeData.ipt). All 183 recipes and rates match mhgu.db; the amount
+  types do not line up with mhgu.db's amounts and are not shown yet.
+- Shop: table/shopList00.slt (shopList01.slt is identical): f32 1.0, u32 count, 16-byte rows [u32 index, u32 item,
+  u32 unlock kind, u32 unlock value] (kind 0 = from the start; the other kinds are not read). Price: itemData.itm
+  u32 +23 (buy; +19 sell, +6 carry limit -- each matches mhgu.db on all 2,866 items).
 """
 import struct, sys
 
@@ -72,9 +78,31 @@ def bui_records(d):
         yield 'em%03d_%02d' % (em & 0xff, em >> 8), list(zip(labels, lists))
 
 
-def build(write, monster_names, gathering, quests):
+def combinations():
+    d = open(ROM + 'table/itemPreData.itp', 'rb').read()
+    n = struct.unpack_from('<I', d, 4)[0]
+    out = []
+    for i in range(n):
+        r = d[8 + 24 * i: 8 + 24 * (i + 1)]
+        _, a, b, res = struct.unpack_from('<HIII', r, 0)
+        out.append((a, b, res, r[14]))
+    return out
+
+
+def build(write, monster_names, gathering, quests, item_name):
     src = {}
     add = lambda item, s: src.setdefault(item, []).append(s)
+    combos = combinations()
+    write('combos.json', [{'a': item_name[a], 'b': item_name[b], 'result': item_name[r], 'rate': p,
+                           'ids': [a, b, r]} for a, b, r, p in combos])
+    for a, b, r, p in combos:
+        add(r, ['Combining', f'{item_name[a]} + {item_name[b]}', 'Combine', p])
+    itm = open(ROM + 'table/itemData.itm', 'rb').read()
+    shop = open(ROM + 'table/shopList00.slt', 'rb').read()
+    for i in range(struct.unpack_from('<I', shop, 4)[0]):
+        _, it, kind, _v = struct.unpack_from('<IIII', shop, 8 + 16 * i)
+        price = struct.unpack_from('<I', itm, 8 + 44 * it + 23)[0]
+        add(it, ['Shop', 'Item shop', f'{price:,}z' + ('' if kind == 0 else ' · unlocks as you progress'), None])
 
     # gathering: [(item, locale, rank, area, kind, pct)]
     x = lambda q: f' ×{q}' if q > 1 else ''

@@ -121,6 +121,9 @@ export interface Item {
   id: number
   name: string
   desc: string
+  carry: number
+  buy: number
+  sell: number
 }
 
 export interface Decoration {
