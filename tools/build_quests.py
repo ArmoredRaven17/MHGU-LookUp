@@ -25,9 +25,14 @@ Main monsters: every boss slot's mEmType (the quest's large monsters, targets an
   Monsters tab names them; the Randomizer's targets are among them in every joined quest. Which slots are the
   targets is in mIsClearParam / mClearID (1 = hunt monster N, 3 = all large monsters, ...): not decoded, the
   objective text says it.
-Not read yet: the reward tables (questLink -> rem_*), small-monster counts, the boss tables (VitalTblNo etc.).
+Rewards: the quest's link file (loc/quest/questLink/questLink_NNNNNNN.qdl) names five rRem tables, in the order of
+  mhgu.db's reward slots A, B, C, D, Sub (rem_000000 = none); each is in loc/arc/quest/qNNNNNNN.arc: f32 1.0, u32 1,
+  +8 u8 flag, +9 u8 count, then from +0x18 count x [u16 item, u8 quantity, u8 percent]. Where the flag is 1, the
+  table's first item is also a guaranteed reward (mhgu.db lists it at 100%) -- located against mhgu.db, see
+  tools/check_quests.py; what flags 2 and 3 mean is not read.
+Not read yet: small-monster counts, the boss tables (VitalTblNo etc.).
 """
-import os, struct, sys
+import os, re, struct, sys
 
 sys.path.insert(0, 'E:/offline/decode/lib')
 import questdata                          # noqa: E402  (the shared cQuestData reader)
@@ -51,6 +56,32 @@ def board():
     return {struct.unpack_from('<I', g, 8 + 7 * i)[0]: (i,) + struct.unpack_from('<BBB', g, 12 + 7 * i) for i in range(n)}
 
 
+QUEST_ARC = 'C:/MHGU-ROM/romfs/nativeNX/loc/arc/quest/q%07d.arc'
+QUEST_LINK = 'C:/MHGU-ROM/romfs/nativeNX/loc/quest/questLink/questLink_%07d.qdl'
+SLOTS = ['A', 'B', 'C', 'D', 'Sub']
+
+
+def rewards(no, item, flat=None, label=''):
+    names = [x.decode() for x in re.findall(rb'rem_[0-9]{6}', open(QUEST_LINK % no, 'rb').read())]
+    d, ents = mh.arc_entries(QUEST_ARC % no)
+    h = mh.thash('rRem')
+    tables = {e[0].split(chr(92))[-1]: e for e in ents if e[1] == h}
+    out = []
+    for slot, name in zip(SLOTS, names):
+        if name == 'rem_000000' or name not in tables:
+            continue
+        r = mh.arc_extract(d, tables[name])
+        flag, n = r[8], r[9]
+        ents_ = [struct.unpack_from('<HBB', r, 0x18 + 4 * i) for i in range(n)]
+        entry = {'slot': slot, 'items': [[item[i], q, p] for i, q, p in ents_]}
+        if flat is not None:
+            flat += [(i, label, slot, q, p) for i, q, p in ents_]
+        if flag == 1 and ents_ and slot != 'Sub':           # mhgu.db: never on the subquest's table
+            entry['guaranteed'] = [item[ents_[0][0]], ents_[0][1]]
+        out.append(entry)
+    return out
+
+
 def stars(lv):
     if 101 <= lv <= 116:
         return f'Permit Lv {lv - 100}'
@@ -59,10 +90,10 @@ def stars(lv):
     return f'{lv}★' if lv else ''
 
 
-def build(gmd_path, write, monster_names):
+def build(gmd_path, write, monster_names, item):
     msg = gmd_path('GUI/06_msg/questMessage_eng.gmd')
     groups = board()
-    out = []
+    out, flat = [], []                              # flat: (item id, quest label, slot, quantity, percent)
     for q in questdata.real_quests():
         no = q['mQuestNo']
         t = [x.replace('\r\n', '\n') for x in gmd_path(f'quest/questData/questData_{no:07d}_eng.gmd')]
@@ -83,11 +114,11 @@ def build(gmd_path, write, monster_names):
             'locale': msg[MAP[q['mMapNo']]] if q['mMapNo'] in MAP else '',
             'time': q['mQuestTime'], 'fee': q['mContract'], 'reward': q['mRemMoney'],
             'hrp': q['mClearRemHuterPoint'], 'subReward': q['mSubRemMoney'], 'subHrp': q['mSubRemHuterPoint'],
-            'requirements': req, 'monsters': bosses, '_map': q['mMapNo'] % 100,
+            'requirements': req, 'monsters': bosses, 'rewards': rewards(no, item, flat, f"{t[0]} ({BAND.get(no // 10000, 'Other')} {stars(q['mQuestLv'])})".replace(' )', ')')), '_map': q['mMapNo'] % 100,
             '_rankfile': {0: 'low', 1: 'low', 3: 'high', 5: 'g'}.get(q['mMonsterLv']),
         })
     out.sort(key=lambda x: x['order'])
     reachable = {(q.pop('_map'), q.pop('_rankfile')) for q in out}
     write('quests.json', out)
     print('  quests', len(out))
-    return reachable
+    return reachable, flat

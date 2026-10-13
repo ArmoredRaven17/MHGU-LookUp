@@ -33,6 +33,7 @@ Sources, per file:
                 (mhgu.db; every name is the game's own text somewhere -- the Hub list, items, titles).
 - quests.json   the quest files and their text: see tools/build_quests.py.
 - gathering.json  every map's gathering points per rank: see tools/build_gathering.py.
+- sources.json  where every item comes from: see tools/build_sources.py.
 - items.json    eng/table/itemData_eng.gmd (2 strings per item: name, description); the jewels are in
                 decorations.json instead.
 """
@@ -311,7 +312,7 @@ def monsters():
 def quests(monster_names):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import build_quests
-    return build_quests.build(gmd_path, write, monster_names)
+    return build_quests.build(gmd_path, write, monster_names, item_names())
 
 
 # ── Gathering ───────────────────────────────────────────────────────────────────────────────
@@ -320,7 +321,14 @@ def gathering(reachable):
     import build_gathering, build_quests
     msg = gmd_path('GUI/06_msg/questMessage_eng.gmd')
     names = {m: msg[i].replace(' (D)', '') for m, i in build_quests.MAP.items() if m < 100}
-    build_gathering.build(gmd_path, write, item_names(), names, reachable)
+    return build_gathering.build(gmd_path, write, item_names(), names, reachable)
+
+
+# ── Item sources ────────────────────────────────────────────────────────────────────────────
+def sources(monster_names, gathered, rewarded):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import build_sources
+    build_sources.build(write, monster_names, gathered, rewarded)
 
 
 # ── Items ───────────────────────────────────────────────────────────────────────────────────
@@ -344,4 +352,9 @@ def items(skip=()):
 
 
 if __name__ == '__main__':
-    skills(); styles(); arts(); weapons(); armor(); gathering(quests(monsters())); items(decorations())
+    skills(); styles(); arts(); weapons(); armor()
+    names = monsters()
+    reachable, rewarded = quests(names)
+    gathered = gathering(reachable)
+    sources(names, gathered, rewarded)
+    items(decorations())

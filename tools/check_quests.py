@@ -61,6 +61,31 @@ for q in ours:
     want = set(r['Monsters'])                       # the Randomizer lists the targets only
     check('targets among the main monsters', want <= mine, (q['id'], q['title'], sorted(mine), sorted(want)))
 
+# Rewards, against mhgu.db's quest_rewards (its quest ids are the game's quest numbers).
+import sqlite3, struct as _st
+_b = open('C:/MHGU-ROM/romfs/nativeNX/eng/table/itemData_eng.gmd', 'rb').read()
+*_, _c, _l, _sz, _nm = _st.unpack_from('<4sIIQIIIII', _b, 0)
+_s = [x.decode('utf8') for x in _b[len(_b) - _sz:].split(b'\0')][:_c]
+iname = {i: _s[2 * i] for i in range(len(_s) // 2)}
+want = collections.defaultdict(lambda: collections.Counter())
+for qid, iid, slot, pct, qty in sqlite3.connect('C:/Coding Repos/mhgu-collection-tracker/data-src/mhgu.db').execute(
+        'select quest_id, item_id, reward_slot, percentage, stack_size from quest_rewards'):
+    want[(qid, slot)][(iname[iid], qty, pct)] += 1
+got = collections.defaultdict(lambda: collections.Counter())
+for q in ours:
+    for r in q.get('rewards', []):
+        for i, qty, pct in r['items']:
+            got[(q['id'], r['slot'])][(i, qty, pct)] += 1
+        if 'guaranteed' in r:
+            got[(q['id'], r['slot'])][(r['guaranteed'][0], r['guaranteed'][1], 100)] += 1
+ids = {q['id'] for q in ours}
+for k in want:
+    if k[0] in ids:
+        check('reward slot', got.get(k) == want[k], (k, sorted(got.get(k, {}))[:4], sorted(want[k])[:4]))
+for k in got:
+    if k not in want:
+        check('reward slot (not in mhgu.db)', False, (k, sorted(got[k])[:3]))
+
 print(', '.join(f'{k} {n[(k, True)]}/{n[(k, True)] + n[(k, False)]}' for k in sorted({k for k, _ in n})))
 for k, v in ex.items():
     print('  MISMATCH', k, v)

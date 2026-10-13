@@ -84,7 +84,7 @@ def build(gmd_path, write, item, map_names, reachable):
     net = gmd_path('GUI/06_msg/NetworkVillage_eng.gmd')
     kind = {k: net[v] for k, v in KIND.items()}
     camp = next(x for x in gmd_path('table/HN_HunterTipsMsg_eng.gmd') if x == 'Base Camp')
-    out = []
+    out, flat = [], []                               # flat: (item id, locale, rank, area, kind, quantity, percent)
     for m in range(1, 27):
         path = STAGE % m
         try:
@@ -106,20 +106,27 @@ def build(gmd_path, write, item, map_names, reachable):
             areas = []
             for a in range(len(fixed)):
                 points = []
+                aname = camp if a == 0 else f'Area {a}'
                 for r in fixed[a]:
                     li, k = struct.unpack_from('<I', r, 0)[0], r[30]
                     if k in kind and li < len(t1):
                         points.append({'kind': kind[k], 'items': named(t1[li])})
+                        flat += [(i, map_names.get(m, f'Map {m}'), label, aname, kind[k], q, p) for i, q, p in t1[li]]
                 for outcomes in random[a]:
                     # The outcomes in the ROM's order (mhgu.db calls the first one normal, the rest rare).
                     ch = [{'chance': o[0], 'items': named(t2[o[1]])} for o in outcomes if o[4] in kind and o[1] < len(t2)]
                     if ch:
                         points.append({'kind': kind[outcomes[0][4]], 'random': True, 'outcomes': ch})
+                        for o in outcomes:
+                            if o[4] in kind and o[1] < len(t2):
+                                flat += [(i, map_names.get(m, f'Map {m}'), label, aname,
+                                          f'{kind[o[4]]} (random point, {o[0]}%)', q, p) for i, q, p in t2[o[1]]]
                 if points:
-                    areas.append({'area': a, 'name': camp if a == 0 else f'Area {a}', 'points': points})
+                    areas.append({'area': a, 'name': aname, 'points': points})
             if areas:
                 ranks.append({'rank': label, 'areas': areas})
         if ranks:
             out.append({'map': m, 'name': map_names.get(m, f'Map {m}'), 'ranks': ranks})
     write('gathering.json', out)
     print('  gathering maps', len(out), 'points', sum(len(a['points']) for x in out for r in x['ranks'] for a in r['areas']))
+    return flat
