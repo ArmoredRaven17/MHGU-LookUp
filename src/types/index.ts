@@ -141,3 +141,29 @@ export interface Monster {
   zones?: { name: string; values: number[] }[][]   // one or two hit-zone tables
   parts?: { n: number; zones: string[]; stagger: number; break: number | null; extract: string }[]
 }
+
+export interface Quest {
+  id: number
+  title: string
+  client: string
+  desc: string
+  others: string          // the quest text's other monsters
+  objective: string
+  failure: string
+  subquest: string
+  category: string        // Village, Hub, Arena, Event, Special Permit, Training
+  stars: string           // '3★', 'G2★', 'Permit Lv 4'
+  level: number
+  rank: string
+  key: boolean
+  order: number           // the quest boards' order
+  locale: string
+  time: number            // minutes
+  fee: number
+  reward: number
+  hrp: number
+  subReward: number
+  subHrp: number
+  requirements: string[]
+  monsters: [string, string][]   // [monster id, name]
+}

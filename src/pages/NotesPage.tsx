@@ -3,7 +3,7 @@ import { useNotes } from '../hooks/useNotes'
 import { ENTITY_SECTIONS } from '../nav'
 import { useTextScale } from '../theme/textScale'
 
-// Every note written on a monster, weapon, armor set, skill tree, Hunter Art or item page, grouped by kind.
+// Every note written on a monster, quest, weapon, armor set, skill tree, Hunter Art or item page, grouped by kind.
 export default function NotesPage() {
   const { notes, remove } = useNotes()
   const navigate = useNavigate()
@@ -18,7 +18,7 @@ export default function NotesPage() {
       <div style={{ maxWidth: 760 }}>
         <h1 style={{ margin: 0, fontSize: 22 * scale, fontWeight: 700 }}>Notes</h1>
         <p style={{ margin: '2px 0 12px', fontSize: 13 * scale, color: 'var(--muted)' }}>
-          Write a note at the bottom of any monster, weapon, armor set, skill tree, Hunter Art or item page. They are kept on this device.
+          Write a note at the bottom of any monster, quest, weapon, armor set, skill tree, Hunter Art or item page. They are kept on this device.
         </p>
         {groups.length === 0 && <p style={{ color: 'var(--muted)', fontSize: 13 * scale }}>No notes yet.</p>}
         {groups.map(g => (

@@ -9,6 +9,7 @@ const TOPICS: [string, string][] = [
   ['Decorations', "Every decoration with the slots it needs, its skill points (click a skill to open its tree) and its recipes. Filter by slots, or search by a skill's name."],
   ['Hunting Styles', 'The six styles in the game\'s own words, with what each style\'s SP State does.'],
   ['Hunter Arts', 'Every Hunter Art with its tiers, and the game\'s short and full description of each tier.'],
+  ['Quests', "Every quest on the boards: Village, Hub (Low, High and G Rank), Special Permit, Arena, Event and Training, grouped by stars or rank. A quest shows its objective, subquest, failure conditions, locale, time, fee, reward, requirements, monsters and the client's summary, all in the game's words."],
   ['Items', 'Every item with its in-game description (decorations have their own tab).'],
   ['Bookmarks and Notes', 'The bookmark button beside a title saves the page to Bookmarks. The Notes box at the bottom of a page keeps your own notes; the Notes tab lists them all. Both stay on this device.'],
   ['The list panel', 'Drag the bar beside the list to make it wider or narrower; click it to hide the list.'],

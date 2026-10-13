@@ -31,6 +31,7 @@ Sources, per file:
                 ROM: the part names (community; the ROM has no part-name table), the monster -> class
                 assignment (authored there, checked against the Quest Randomizer) and the id -> name join
                 (mhgu.db; every name is the game's own text somewhere -- the Hub list, items, titles).
+- quests.json   the quest files and their text: see tools/build_quests.py.
 - items.json    eng/table/itemData_eng.gmd (2 strings per item: name, description); the jewels are in
                 decorations.json instead.
 """
@@ -42,7 +43,12 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path
 
 
 def gmd(name):
-    b = open(ROM + 'eng/table/' + name, 'rb').read()
+    return gmd_path('table/' + name)
+
+
+def gmd_path(path):
+    """A GMD text table under eng/: its strings in order."""
+    b = open(ROM + 'eng/' + path, 'rb').read()
     *_, count, _labels, size, _names = struct.unpack_from('<4sIIQIIIII', b, 0)
     return [x.decode('utf8', 'replace').replace('\r\n', '\n') for x in b[len(b) - size:].split(b'\0')][:count]
 
@@ -297,6 +303,14 @@ def monsters():
     order = [c for c in load('monster-classes.json')['_about']['order'] if any(e['class'] == c for e in out)]
     write('monsters.json', {'zoneTypes': ZONE_TYPES, 'classes': order, 'monsters': out})
     print('  monsters', len(out), 'with zones', sum(1 for e in out if 'zones' in e))
+    return {e['id']: e['name'] for e in out}
+
+
+# ── Quests ──────────────────────────────────────────────────────────────────────────────────
+def quests(monster_names):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import build_quests
+    build_quests.build(gmd_path, write, monster_names)
 
 
 # ── Items ───────────────────────────────────────────────────────────────────────────────────
@@ -320,4 +334,4 @@ def items(skip=()):
 
 
 if __name__ == '__main__':
-    skills(); styles(); arts(); weapons(); armor(); monsters(); items(decorations())
+    skills(); styles(); arts(); weapons(); armor(); quests(monsters()); items(decorations())

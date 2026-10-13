@@ -1,0 +1,96 @@
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import { loadQuests } from '../data/loaders'
+import type { Quest } from '../types'
+import ListPage, { DetailHeader, Section } from '../components/ListPage'
+import BookmarkButton from '../components/BookmarkButton'
+import NotesBox from '../components/NotesBox'
+import GameText from '../components/GameText'
+import { useTextScale } from '../theme/textScale'
+
+const CATEGORIES = ['Village', 'Hub', 'Special Permit', 'Arena', 'Event', 'Training']
+const RANKS = ['Village Low Rank', 'Low Rank', 'High Rank', 'G Rank']
+
+export default function QuestsPage() {
+  const { id } = useParams()
+  const [quests, setQuests] = useState<Quest[]>([])
+  const [cat, setCat] = useState('Village')
+  useEffect(() => { loadQuests().then(setQuests) }, [])
+
+  // A quest opened by link shows its own category's list.
+  const quest = quests.find(q => String(q.id) === id)
+  useEffect(() => { if (quest) setCat(quest.category) }, [quest])
+
+  // Village, Hub and Special Permit quests are grouped by stars (Permit level); the rest by rank.
+  const byRank = cat === 'Event' || cat === 'Arena' || cat === 'Training'
+  const entries = useMemo(() => quests
+    .filter(q => q.category === cat)
+    .sort((a, b) => (byRank ? RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank) : a.level - b.level) || a.order - b.order)
+    .map(q => ({
+      key: String(q.id), label: q.title,
+      sub: [q.key ? 'Key Quest' : '', q.locale, byRank ? '' : q.rank].filter(Boolean).join(' · '),
+      group: byRank ? q.rank || cat : q.stars,
+      search: q.objective + ' ' + q.monsters.map(m => m[1]).join(' '),
+    })), [quests, cat, byRank])
+
+  return (
+    <ListPage entries={entries} base="/quests" selected={id} placeholder="Search quests, objectives or monsters…"
+              emptyText="Select a quest from the list."
+              filter={{ value: cat, options: CATEGORIES.map(c => ({ value: c, label: c })), onChange: setCat }}>
+      {quest && <QuestDetail key={quest.id} q={quest} />}
+    </ListPage>
+  )
+}
+
+function Row({ k, children }: { k: string; children: ReactNode }) {
+  return (
+    <tr className="tbl-row">
+      <td className="tbl-cell text-muted" style={{ paddingRight: 16, whiteSpace: 'nowrap', verticalAlign: 'top' }}>{k}</td>
+      <td className="tbl-cell">{children}</td>
+    </tr>
+  )
+}
+
+function QuestDetail({ q }: { q: Quest }) {
+  const scale = useTextScale()
+  const path = `/quests/${q.id}`
+  const z = (n: number) => `${n.toLocaleString()}z`
+  return (
+    <div style={{ maxWidth: 760 }}>
+      <DetailHeader title={q.title} sub={[q.category, q.stars, q.rank, q.key ? 'Key Quest' : ''].filter(Boolean).join(' · ')}>
+        <BookmarkButton bookmark={{ type: 'quest', id: String(q.id), name: q.title, path }} />
+      </DetailHeader>
+
+      <Section title="Quest">
+        <table style={{ borderCollapse: 'collapse' }}>
+          <tbody>
+            <Row k="Main Objective"><GameText text={q.objective} style={{ margin: 0 }} /></Row>
+            {q.subquest && <Row k="Subquest"><GameText text={q.subquest} style={{ margin: 0 }} />
+              {(q.subReward > 0 || q.subHrp > 0) && <span className="text-muted"> ({z(q.subReward)}{q.subHrp ? `, ${q.subHrp} HRP` : ''})</span>}</Row>}
+            <Row k="Failure"><GameText text={q.failure} style={{ margin: 0 }} /></Row>
+            <Row k="Locale">{q.locale}</Row>
+            <Row k="Time">{q.time} min.</Row>
+            <Row k="Fee">{z(q.fee)}</Row>
+            <Row k="Reward">{z(q.reward)}{q.hrp ? <span className="text-muted"> · {q.hrp} HRP</span> : null}</Row>
+            <Row k="Requirements">{q.requirements.length ? q.requirements.join(', ') : 'None'}</Row>
+            {q.monsters.length > 0 && (
+              <Row k="Main Monsters">
+                {q.monsters.map(([mid, name], i) => <span key={mid}>{i > 0 && ', '}<Link to={`/monsters/${mid}`}>{name}</Link></span>)}
+              </Row>
+            )}
+            {q.others && q.others !== 'None' && <Row k="Other Monsters"><GameText text={q.others.replace(/\n/g, ', ')} style={{ margin: 0 }} /></Row>}
+            <Row k="Client">{q.client}</Row>
+          </tbody>
+        </table>
+      </Section>
+
+      <Section title="Summary">
+        <GameText text={q.desc} style={{ margin: 0, fontSize: 14 * scale }} />
+      </Section>
+
+      <Section title="Notes">
+        <NotesBox target={{ type: 'quest', id: String(q.id), name: q.title, category: `${q.category} ${q.stars}`.trim(), path }} />
+      </Section>
+    </div>
+  )
+}
