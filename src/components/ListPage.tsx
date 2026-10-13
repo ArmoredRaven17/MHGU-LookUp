@@ -11,6 +11,7 @@ export interface ListEntry {
   sub?: string         // a muted second line
   search?: string      // extra text the search box matches, beyond the label
   indent?: number      // depth in a tree (the weapons' upgrade tree); dropped while searching
+  group?: string       // a heading the entry is listed under (entries come already ordered by group)
 }
 
 // The list + detail shell every lookup tab shares (from the MHFU LookUp): a resizable,
@@ -52,10 +53,18 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
         )}
         <SearchBox value={search} onChange={setSearch} placeholder={placeholder} />
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          {shown.map(e => {
+          {shown.map((e, i) => {
             const active = e.key === selected
+            const heading = e.group && e.group !== shown[i - 1]?.group
             return (
-              <button key={e.key} onClick={() => navigate(`${base}/${e.key}`)} style={{
+              <div key={e.key}>
+              {heading && (
+                <div style={{
+                  padding: '8px 12px 3px', fontSize: 11 * scale, fontWeight: 700, color: 'var(--accent)',
+                  textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)',
+                }}>{e.group}</div>
+              )}
+              <button onClick={() => navigate(`${base}/${e.key}`)} style={{
                 display: 'block', width: '100%', padding: '5px 12px',
                 paddingLeft: 12 + (search.trim() ? 0 : Math.min(e.indent ?? 0, 8) * 10),
                 background: active ? 'var(--header-bg)' : 'transparent',
@@ -66,6 +75,7 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
                 {e.label}
                 {e.sub && <span style={{ display: 'block', color: 'var(--muted)', fontSize: 11 * scale }}>{e.sub}</span>}
               </button>
+              </div>
             )
           })}
           {shown.length === 0 && (

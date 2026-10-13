@@ -14,20 +14,24 @@ const ZONE_LABELS: Record<string, string> = {
 const SIZE_FILTER = [
   { value: 'large', label: 'Large monsters' },
   { value: 'small', label: 'Small monsters' },
-  { value: 'all', label: 'All monsters' },
 ]
 
 export default function MonstersPage() {
   const { id } = useParams()
-  const [data, setData] = useState<{ zoneTypes: string[]; monsters: Monster[] }>({ zoneTypes: [], monsters: [] })
+  const [data, setData] = useState<{ zoneTypes: string[]; classes: string[]; monsters: Monster[] }>({ zoneTypes: [], classes: [], monsters: [] })
   const [size, setSize] = useState('large')
   useEffect(() => { loadMonsters().then(setData) }, [])
 
-  const entries = useMemo(() => data.monsters
-    .filter(m => size === 'all' || (size === 'small') === m.small)
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(m => ({ key: m.id, label: m.name, sub: m.class, search: m.class })), [data, size])
+  // Listed under their class, in the classes' order; a monster opened by link shows its own size's list.
   const mon = data.monsters.find(m => m.id === id)
+  useEffect(() => { if (mon) setSize(mon.small ? 'small' : 'large') }, [mon])
+  const entries = useMemo(() => {
+    const rank = (c: string) => { const i = (data.classes ?? []).indexOf(c); return i < 0 ? 99 : i }
+    return data.monsters
+      .filter(m => (size === 'small') === m.small)
+      .sort((a, b) => rank(a.class) - rank(b.class) || a.name.localeCompare(b.name))
+      .map(m => ({ key: m.id, label: m.name, group: m.class || 'Unclassified', search: m.class }))
+  }, [data, size])
 
   return (
     <ListPage entries={entries} base="/monsters" selected={id} placeholder="Search monsters…"

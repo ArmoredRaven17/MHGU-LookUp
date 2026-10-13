@@ -294,7 +294,8 @@ def monsters():
             e['parts'] = [{'n': i + 1, 'zones': hits.get(i, []), **h['parts'][i]}
                           for i in h['partsUsed'] if i < len(h['parts'])]
         out.append(e)
-    write('monsters.json', {'zoneTypes': ZONE_TYPES, 'monsters': out})
+    order = [c for c in load('monster-classes.json')['_about']['order'] if any(e['class'] == c for e in out)]
+    write('monsters.json', {'zoneTypes': ZONE_TYPES, 'classes': order, 'monsters': out})
     print('  monsters', len(out), 'with zones', sum(1 for e in out if 'zones' in e))
 
 
