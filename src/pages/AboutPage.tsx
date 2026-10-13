@@ -10,7 +10,7 @@ export default function AboutPage() {
       <div style={{ maxWidth: 720 }}>
         <h1 style={{ margin: '0 0 12px', fontSize: 22 * scale, fontWeight: 700 }}>MHGU LookUp</h1>
         <P>
-          A reference app for <strong>Monster Hunter Generations Ultimate</strong>: weapons, armor, armor skills,
+          A reference app for <strong>Monster Hunter Generations Ultimate</strong>: monsters, weapons, armor, decorations, armor skills,
           Hunting Styles, Hunter Arts and items, with more tabs filled in as their data is read from the game.
           Created by <strong>Armored_Raven</strong>, as the GU sibling of the MHFU LookUp.
         </P>
@@ -20,6 +20,12 @@ export default function AboutPage() {
           Every name, description and value is read from the game's own text and data tables (dumped from a
           personally-owned copy). Nothing is carried over from the MHFU app or taken from guides; community
           databases were used only to check that a table had been read right. No game files are redistributed.
+        </P>
+        <P>
+          Two things on the Monsters tab are not the game's: the hit-zone names, which come from the community
+          (the game has no names for them), and which class each monster belongs to (the class names are the
+          game's, the assignment was made by hand). The monster data itself was read from the game by the MHGU
+          Monster Viewer.
         </P>
         <P>
           The armor skill explanations are the ones written for MHGU Armor Skills Explained, read from the

@@ -131,3 +131,13 @@ export interface Decoration {
   skills: [string, number][]
   recipes: Material[][]
 }
+
+export interface Monster {
+  id: string
+  name: string
+  small: boolean
+  class: string
+  quests: [string, number][]        // [rank, how many quests have it at that rank]
+  zones?: { name: string; values: number[] }[][]   // one or two hit-zone tables
+  parts?: { n: number; zones: string[]; stagger: number; break: number | null; extract: string }[]
+}

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import { NAV } from './nav'
+import MonstersPage from './pages/MonstersPage'
 import WeaponsPage from './pages/WeaponsPage'
 import ArmorPage from './pages/ArmorPage'
 import ArmorSkillsPage from './pages/ArmorSkillsPage'
@@ -21,6 +22,8 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Navigate to="/weapons" replace />} />
+          <Route path="monsters"          element={<MonstersPage />} />
+          <Route path="monsters/:id"      element={<MonstersPage />} />
           <Route path="weapons"           element={<WeaponsPage />} />
           <Route path="weapons/:cls"      element={<WeaponsPage />} />
           <Route path="weapons/:cls/:row" element={<WeaponsPage />} />

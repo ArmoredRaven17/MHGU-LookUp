@@ -1,4 +1,4 @@
-import type { SkillData, Style, HunterArt, WeaponClass, WeaponIndex, ArmorSet, Decoration, Item } from '../types'
+import type { SkillData, Style, HunterArt, WeaponClass, WeaponIndex, ArmorSet, Decoration, Item, Monster } from '../types'
 
 const cache = new Map<string, Promise<unknown>>()
 
@@ -20,4 +20,5 @@ export const loadWeaponIndex = () => load<WeaponIndex>('weapons.json')
 export const loadWeaponClass = (id: string) => load<WeaponClass>(`weapons/${id}.json`)
 export const loadArmor       = () => load<ArmorSet[]>('armor.json')
 export const loadDecorations = () => load<Decoration[]>('decorations.json')
+export const loadMonsters    = () => load<{ zoneTypes: string[]; monsters: Monster[] }>('monsters.json')
 export const loadItems       = () => load<Item[]>('items.json')
