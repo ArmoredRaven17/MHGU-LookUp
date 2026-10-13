@@ -167,3 +167,18 @@ export interface Quest {
   requirements: string[]
   monsters: [string, string][]   // [monster id, name]
 }
+
+export type GatherItem = [string, number, number]   // item, quantity, percent per pull
+
+export interface GatherPoint {
+  kind: string                     // Gathering, Ore Mining, Insect Catching
+  items?: GatherItem[]             // a fixed point
+  random?: boolean                 // a random point: one of its outcomes is rolled
+  outcomes?: { chance: number; items: GatherItem[] }[]
+}
+
+export interface GatherMap {
+  map: number
+  name: string
+  ranks: { rank: string; areas: { area: number; name: string; points: GatherPoint[] }[] }[]
+}

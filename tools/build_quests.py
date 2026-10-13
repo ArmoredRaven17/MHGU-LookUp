@@ -33,7 +33,7 @@ sys.path.insert(0, 'E:/offline/decode/lib')
 import questdata                          # noqa: E402  (the shared cQuestData reader)
 import mh                                 # noqa: E402
 
-COMMON_ARC = 'C:/MHGU-RE/rom/romfs/nativeNX/loc/arc/village/common.arc'
+COMMON_ARC = 'C:/MHGU-ROM/romfs/nativeNX/loc/arc/village/common.arc'
 BAND = {0: 'Village', 10: 'Village', 1: 'Hub', 11: 'Hub', 2: 'Arena', 12: 'Arena', 102: 'Arena', 112: 'Arena',
         4: 'Special Permit', 101: 'Event', 111: 'Event', 3: 'Training', 13: 'Training'}
 RANK = {0: 'Village Low Rank', 1: 'Low Rank', 3: 'High Rank', 5: 'G Rank'}
@@ -83,8 +83,11 @@ def build(gmd_path, write, monster_names):
             'locale': msg[MAP[q['mMapNo']]] if q['mMapNo'] in MAP else '',
             'time': q['mQuestTime'], 'fee': q['mContract'], 'reward': q['mRemMoney'],
             'hrp': q['mClearRemHuterPoint'], 'subReward': q['mSubRemMoney'], 'subHrp': q['mSubRemHuterPoint'],
-            'requirements': req, 'monsters': bosses,
+            'requirements': req, 'monsters': bosses, '_map': q['mMapNo'] % 100,
+            '_rankfile': {0: 'low', 1: 'low', 3: 'high', 5: 'g'}.get(q['mMonsterLv']),
         })
     out.sort(key=lambda x: x['order'])
+    reachable = {(q.pop('_map'), q.pop('_rankfile')) for q in out}
     write('quests.json', out)
     print('  quests', len(out))
+    return reachable
