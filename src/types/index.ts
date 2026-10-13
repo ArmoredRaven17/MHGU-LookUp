@@ -122,7 +122,8 @@ export interface Item {
   name: string
   desc: string
   carry: number
-  buy: number
+  category: string
+  buy?: number          // only for an item the shop sells
   sell: number
 }
 

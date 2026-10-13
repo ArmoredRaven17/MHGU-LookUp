@@ -8,6 +8,10 @@ import NotesBox from '../components/NotesBox'
 import GameText from '../components/GameText'
 import { useTextScale } from '../theme/textScale'
 
+// The game has no item categories; these group the items' icon shapes (see tools/build_data.py).
+const CATEGORIES = ['Consumables', 'Tools & Traps', 'Ammo & Coatings', 'Plants & Mushrooms', 'Bugs & Fish',
+  'Ore & Minerals', 'Monster Materials', 'Other Materials', 'Kinsect Extracts', 'Scraps', 'Armor Spheres',
+  'Tickets & Coins', 'Relics & Charms', 'Books', 'Other']
 type Source = [string, string, string, number | null]   // kind, where, detail, percent
 const KINDS = ['Shop', 'Combining', 'Monster', 'Gathering', 'Quest reward']
 const HEADINGS: Record<string, string> = {
@@ -21,18 +25,22 @@ export default function ItemsPage() {
   const [sources, setSources] = useState<Record<string, Source[]>>({})
   useEffect(() => { loadItems().then(setItems); loadSources().then(setSources) }, [])
 
+  const [cat, setCat] = useState('all')
   const entries = useMemo(() => [...items]
-    .sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id)
-    .map(i => ({ key: String(i.id), label: i.name })), [items])
+    .filter(i => cat === 'all' || i.category === cat)
+    .sort((a, b) => CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category) || a.name.localeCompare(b.name) || a.id - b.id)
+    .map(i => ({ key: String(i.id), label: i.name, group: i.category })), [items, cat])
   const item = items.find(i => String(i.id) === id)
   const path = `/items/${id}`
 
   return (
     <ListPage entries={entries} base="/items" selected={id} placeholder="Search items…"
-              emptyText="Select an item from the list.">
+              emptyText="Select an item from the list."
+              filter={{ value: cat, onChange: setCat,
+                        options: [{ value: 'all', label: 'All items' }, ...CATEGORIES.map(c => ({ value: c, label: c }))] }}>
       {item && (
         <div style={{ maxWidth: 760 }}>
-          <DetailHeader title={item.name}>
+          <DetailHeader title={item.name} sub={item.category}>
             <BookmarkButton bookmark={{ type: 'item', id: String(item.id), name: item.name, path }} />
           </DetailHeader>
           <Section title="In-Game Description">
@@ -40,7 +48,7 @@ export default function ItemsPage() {
           </Section>
           <Section title="Item">
             <p style={{ margin: 0, fontSize: 13 * scale }}>
-              {item.buy > 0 && <>Buy {item.buy.toLocaleString()}z · </>}Sell {item.sell.toLocaleString()}z · Carry up to {item.carry}
+              {item.buy != null && <>Buy {item.buy.toLocaleString()}z · </>}Sell {item.sell.toLocaleString()}z · Carry up to {item.carry}
             </p>
           </Section>
           <Section title="Where to Get It">
