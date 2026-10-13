@@ -9,22 +9,36 @@ import { useTextScale } from '../theme/textScale'
 const VIEWS = [
   { value: 'dishes', label: 'Dishes' },
   { value: 'ingredients', label: 'Ingredients' },
+  { value: 'daily', label: 'Daily Skills' },
 ]
 
-// Route: /canteen/d<row> (a dish), /canteen/i<id> (an ingredient), /canteen/daily.
+// The view a route belongs to: /canteen/d<row> (a dish), /canteen/i<id> (an ingredient),
+// /canteen/daily and /canteen/drink (the two Daily Skill lists).
+function viewOf(id: string | undefined) {
+  if (id === 'daily' || id === 'drink') return 'daily'
+  if (id && /^i\d+$/.test(id)) return 'ingredients'
+  if (id && /^d\d+$/.test(id)) return 'dishes'
+  return null
+}
+
 export default function CanteenPage() {
   const { id } = useParams()
   const [data, setData] = useState<Canteen | null>(null)
-  const [view, setView] = useState(id?.startsWith('i') ? 'ingredients' : 'dishes')
+  const [view, setView] = useState(viewOf(id) ?? 'dishes')
   useEffect(() => { loadCanteen().then(setData) }, [])
-  useEffect(() => { if (id?.startsWith('i')) setView('ingredients'); else if (id?.startsWith('d')) setView('dishes') }, [id])
+  useEffect(() => { const v = viewOf(id); if (v) setView(v) }, [id])
 
   const entries = useMemo(() => {
     if (!data) return []
+    if (view === 'daily') {
+      return [
+        { key: 'daily', label: 'Daily Skill', group: 'Daily Skills', sub: `${data.daily.length} skills` },
+        { key: 'drink', label: 'Daily Drink Skill', group: 'Daily Skills', sub: `${data.dailyDrink.length} skills` },
+      ]
+    }
     if (view === 'ingredients') {
-      return [{ key: 'daily', label: 'Daily Skills', group: 'Skills of the day' },
-        ...data.ingredients.map((n, i) => ({ key: `i${i}`, label: n, group: 'Ingredients', sub: unlockHint(data.unlocks[i][0]),
-          search: data.unlocks[i].map(unlockHint).join(' ') }))]
+      return data.ingredients.map((n, i) => ({ key: `i${i}`, label: n, group: 'Ingredients', sub: unlockHint(data.unlocks[i][0]),
+        search: data.unlocks[i].map(unlockHint).join(' ') }))
     }
     return data.dishes.map((d, i) => ({
       key: `d${i}`, label: d.name, group: `Canteen Level ${d.level}`,
@@ -34,13 +48,16 @@ export default function CanteenPage() {
   }, [data, view])
 
   let detail = null
-  if (data && id === 'daily') detail = <Daily data={data} />
-  else if (data && id?.startsWith('d') && data.dishes[+id.slice(1)]) detail = <DishDetail key={id} data={data} row={+id.slice(1)} />
-  else if (data && id?.startsWith('i') && data.ingredients[+id.slice(1)]) detail = <IngredientDetail key={id} data={data} ing={+id.slice(1)} />
+  const kind = viewOf(id)
+  if (data && id === 'daily') detail = <Daily title="Daily Skill" list={data.daily} />
+  else if (data && id === 'drink') detail = <Daily title="Daily Drink Skill" list={data.dailyDrink} />
+  else if (data && kind === 'dishes' && data.dishes[+id!.slice(1)]) detail = <DishDetail key={id} data={data} row={+id!.slice(1)} />
+  else if (data && kind === 'ingredients' && data.ingredients[+id!.slice(1)]) detail = <IngredientDetail key={id} data={data} ing={+id!.slice(1)} />
 
+  const placeholder = view === 'dishes' ? 'Search dishes or ingredients…' : view === 'ingredients' ? 'Search ingredients…' : 'Search…'
   return (
-    <ListPage entries={entries} base="/canteen" selected={id} placeholder={view === 'dishes' ? 'Search dishes or ingredients…' : 'Search ingredients…'}
-              emptyText="Select a dish or an ingredient." filter={{ value: view, options: VIEWS, onChange: setView }}>
+    <ListPage entries={entries} base="/canteen" selected={id} placeholder={placeholder}
+              emptyText="Select a dish, an ingredient or a Daily Skill list." filter={{ value: view, options: VIEWS, onChange: setView }}>
       {detail}
     </ListPage>
   )
@@ -175,23 +192,16 @@ function Unlock({ u }: { u: IngredientUnlock }) {
   )
 }
 
-function Daily({ data }: { data: Canteen }) {
+function Daily({ title, list }: { title: string; list: Canteen['daily'] }) {
   const scale = useTextScale()
-  const list = (title: string, l: Canteen['daily']) => (
-    <div>
-      <div style={{ fontWeight: 600, marginBottom: 4 }}>{title}</div>
-      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 * scale }}>
-        {l.map(s => <li key={s.skill}>{s.skill}{s.later && <span className="text-muted"> (later in the game)</span>}</li>)}
-      </ul>
-    </div>
-  )
   return (
     <div style={{ maxWidth: 720 }}>
-      <DetailHeader title="Daily Skills" sub="Drawn each time the Canteen's menu refreshes" />
-      <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap' }}>
-        {list('Daily Skill', data.daily)}
-        {list('Daily Drink Skill', data.dailyDrink)}
-      </div>
+      <DetailHeader title={title} sub="Drawn each time the Canteen's menu refreshes" />
+      <Section title={`Skills (${list.length})`}>
+        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 * scale }}>
+          {list.map(s => <li key={s.skill}>{s.skill}{s.later && <span className="text-muted"> (later in the game)</span>}</li>)}
+        </ul>
+      </Section>
     </div>
   )
 }
