@@ -13,7 +13,7 @@ Read from the ROM (romfs table/ and eng/table/Kitchen_eng.gmd, catSkillData_eng.
   offers every set of its mMenuType, in table order (0x732618). Sauce name = Kitchen 48 + mSauceType, with the tag
   0x7338ac adds (read for MHGU Armor Skills Explained's Food Skills: C:/MHGU-Extract/food-skills/out/K-sauce-tags.json).
   Skill 66 / 67 = drawn from kitchenListSkillRandom.kcr / kitchenListSkillAlcohol.kca (catSkillData has no text for
-  either id; shown as Raven's section name 'Daily Skills'). Their s32 mOpenType is not read, so not shown.
+  either id; shown as Raven's section name 'Food Skills'). Their s32 mOpenType is not read, so not shown.
 - Odds, read for the Food Skills page (C:/MHGU-Extract/food-skills/gen_meals.py, 0x1a64d4, 0x161f430): a set's
   first skill activates 80% of the time, its second 60%, its third never; with the chef Fired Up (the dish on the
   day's list) 100% / 70-90% / 30-70% by Canteen level; a Gourmet Voucher activates all three.
@@ -156,7 +156,7 @@ def build(gmd, write, quest_info):
     for i, (mt, sauce, *sk) in enumerate(sets):
         menus.setdefault(mt, []).append({
             'sauce': f"{K[48 + sauce]} {tags.get(i, '')}".strip(),
-            'skills': ['Daily Skills' if x in (66, 67) else skill(x) for x in sk if x],
+            'skills': ['Food Skills' if x in (66, 67) else skill(x) for x in sk if x],
         })
 
     def draw(name):
@@ -167,7 +167,7 @@ def build(gmd, write, quest_info):
     ways = unlocks(gmd, quest_info)
     assert all(ways), [ingredients[i] for i, w in enumerate(ways) if not w]
     out = {'ingredients': ingredients, 'unlocks': ways, 'dishes': dishes, 'menus': {str(k): v for k, v in menus.items()},
-           'daily': draw('kitchenListSkillRandom.kcr'), 'dailyDrink': draw('kitchenListSkillAlcohol.kca'),
+           'random': draw('kitchenListSkillRandom.kcr'), 'alcohol': draw('kitchenListSkillAlcohol.kca'),
            'odds': CHANCE, 'sauces': [K[48 + i] for i in range(5)]}
     write('canteen.json', out)
     print('  canteen: ingredients', len(ingredients), 'dishes', len(dishes), 'sauce sets', len(sets))

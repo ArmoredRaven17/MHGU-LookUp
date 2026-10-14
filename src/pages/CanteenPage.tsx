@@ -9,13 +9,13 @@ import { useTextScale } from '../theme/textScale'
 const VIEWS = [
   { value: 'dishes', label: 'Dishes' },
   { value: 'ingredients', label: 'Ingredients' },
-  { value: 'daily', label: 'Daily Skills' },
+  { value: 'skills', label: 'Food Skills' },
 ]
 
 // The view a route belongs to: /canteen/d<row> (a dish), /canteen/i<id> (an ingredient),
-// /canteen/s<skill> (a skill in the Daily Skills draw lists), /canteen/daily (that list).
+// /canteen/s<skill> (a skill in the Food Skills draw lists), /canteen/skills (that list).
 function viewOf(id: string | undefined) {
-  if (id === 'daily' || (id && /^s\d+$/.test(id))) return 'daily'
+  if (id === 'skills' || (id && /^s\d+$/.test(id))) return 'skills'
   if (id && /^i\d+$/.test(id)) return 'ingredients'
   if (id && /^d\d+$/.test(id)) return 'dishes'
   return null
@@ -30,8 +30,8 @@ export default function CanteenPage() {
 
   const entries = useMemo(() => {
     if (!data) return []
-    if (view === 'daily') {
-      return dailySkills(data).map(s => ({ key: `s${s.id}`, label: s.skill, group: 'Daily Skills', search: s.desc }))
+    if (view === 'skills') {
+      return foodSkills(data).map(s => ({ key: `s${s.id}`, label: s.skill, group: 'Food Skills', search: s.desc }))
     }
     if (view === 'ingredients') {
       return data.ingredients.map((n, i) => ({ key: `i${i}`, label: n, group: 'Ingredients', sub: unlockHint(data.unlocks[i][0]),
@@ -46,8 +46,8 @@ export default function CanteenPage() {
 
   let detail = null
   const kind = viewOf(id)
-  const daily = data && id?.startsWith('s') ? dailySkills(data).find(s => `s${s.id}` === id) : undefined
-  if (daily) detail = <DailySkill skill={daily} />
+  const food = data && id?.startsWith('s') ? foodSkills(data).find(s => `s${s.id}` === id) : undefined
+  if (food) detail = <FoodSkill skill={food} />
   else if (data && kind === 'dishes' && data.dishes[+id!.slice(1)]) detail = <DishDetail key={id} data={data} row={+id!.slice(1)} />
   else if (data && kind === 'ingredients' && data.ingredients[+id!.slice(1)]) detail = <IngredientDetail key={id} data={data} ing={+id!.slice(1)} />
 
@@ -114,7 +114,7 @@ function DishDetail({ data, row }: { data: Canteen; row: number }) {
             {sauces.map((s, i) => (
               <tr key={i} className="tbl-row">
                 <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>{s.sauce}</td>
-                {[0, 1, 2].map(k => <td key={k} className="tbl-cell">{s.skills[k] === 'Daily Skills' ? <Link to="/canteen/daily">Daily Skills</Link> : s.skills[k] ?? ''}</td>)}
+                {[0, 1, 2].map(k => <td key={k} className="tbl-cell">{s.skills[k] === 'Food Skills' ? <Link to="/canteen/skills">Food Skills</Link> : s.skills[k] ?? ''}</td>)}
               </tr>
             ))}
           </tbody>
@@ -185,13 +185,13 @@ function Unlock({ u }: { u: IngredientUnlock }) {
   )
 }
 
-// Every skill the two draw lists hold, once each, in table order.
-function dailySkills(data: Canteen) {
+// Every skill the two Food Skills draw lists hold, once each, in table order.
+function foodSkills(data: Canteen) {
   const seen = new Set<number>()
-  return [...data.daily, ...data.dailyDrink].filter(s => !seen.has(s.id) && seen.add(s.id))
+  return [...data.random, ...data.alcohol].filter(s => !seen.has(s.id) && seen.add(s.id))
 }
 
-function DailySkill({ skill }: { skill: Canteen['daily'][number] }) {
+function FoodSkill({ skill }: { skill: Canteen['random'][number] }) {
   const scale = useTextScale()
   return (
     <div style={{ maxWidth: 720 }}>
