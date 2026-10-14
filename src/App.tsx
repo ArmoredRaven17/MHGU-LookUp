@@ -12,6 +12,8 @@ import QuestsPage from './pages/QuestsPage'
 import GatheringPage from './pages/GatheringPage'
 import CombosPage from './pages/CombosPage'
 import CanteenPage from './pages/CanteenPage'
+import PalicoEquipmentPage from './pages/PalicoEquipmentPage'
+import PalicoSkillsPage from './pages/PalicoSkillsPage'
 import ItemsPage from './pages/ItemsPage'
 import BookmarksPage from './pages/BookmarksPage'
 import NotesPage from './pages/NotesPage'
@@ -47,6 +49,10 @@ export default function App() {
           <Route path="combos"            element={<CombosPage />} />
           <Route path="canteen"           element={<CanteenPage />} />
           <Route path="canteen/:id"       element={<CanteenPage />} />
+          <Route path="palicogear"        element={<PalicoEquipmentPage />} />
+          <Route path="palicogear/:id"    element={<PalicoEquipmentPage />} />
+          <Route path="palicoskills"      element={<PalicoSkillsPage />} />
+          <Route path="palicoskills/:id"  element={<PalicoSkillsPage />} />
           <Route path="items"             element={<ItemsPage />} />
           <Route path="items/:id"         element={<ItemsPage />} />
           <Route path="bookmarks"         element={<BookmarksPage />} />

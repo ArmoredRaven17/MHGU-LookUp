@@ -392,6 +392,13 @@ def canteen():
     build_canteen.build(gmd, write, info, briefs('food'))
 
 
+# ── Palico ──────────────────────────────────────────────────────────────────────────────────
+def palico():
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import build_palico
+    build_palico.build(gmd, gmd_path, write)
+
+
 # ── Items ───────────────────────────────────────────────────────────────────────────────────
 def items(skip=()):
     s = gmd('itemData_eng.gmd')
@@ -427,4 +434,5 @@ if __name__ == '__main__':
     gathered = gathering(reachable)
     sources(names, gathered, rewarded)
     canteen()
+    palico()
     items(decorations())
