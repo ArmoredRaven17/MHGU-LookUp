@@ -6,7 +6,6 @@ import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
 import GameText from '../components/GameText'
-import Markdown from '../components/Markdown'
 import { useTextScale } from '../theme/textScale'
 
 const EXPLAINED = 'https://armoredraven17.github.io/mhgu-armor-skills-explained/'
@@ -78,7 +77,10 @@ function TreeDetail({ tree, skillById }: { tree: SkillTree; skillById: Map<numbe
               {s.name} <span style={{ color: signColor(l.points), fontSize: 13 * scale }}>({signStr(l.points)})</span>
             </h3>
             <p style={{ margin: '0 0 8px', color: 'var(--muted)', fontStyle: 'italic', fontSize: 13 * scale }}>{s.desc}</p>
-            {s.explanation && <Markdown src={s.explanation} />}
+            {s.brief && <p style={{ margin: 0, fontSize: 14 * scale }}>{s.brief}</p>}
+            <p style={{ margin: '6px 0 0', fontSize: 12 * scale }}>
+              <a href={`${EXPLAINED}#s${s.id}`} target="_blank" rel="noopener">More detail in MHGU Armor Skills Explained</a>
+            </p>
             {s.grantedBy.length > 0 && (
               <p style={{ margin: '8px 0 0', fontSize: 12 * scale, color: 'var(--muted)' }}>
                 Also granted by: {s.grantedBy.join(', ')}
@@ -89,7 +91,7 @@ function TreeDetail({ tree, skillById }: { tree: SkillTree; skillById: Map<numbe
       })}
 
       <p style={{ fontSize: 12 * scale, color: 'var(--muted)' }}>
-        The explanations are the ones written for <a href={EXPLAINED} target="_blank" rel="noopener">MHGU Armor Skills Explained</a>.
+        The short explanations are written from the ones in <a href={EXPLAINED} target="_blank" rel="noopener">MHGU Armor Skills Explained</a>, which were read from the game.
       </p>
 
       <Section title="Notes">

@@ -6,6 +6,8 @@ import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
 import { useTextScale } from '../theme/textScale'
 
+const EXPLAINED = 'https://armoredraven17.github.io/mhgu-armor-skills-explained/'
+
 const VIEWS = [
   { value: 'dishes', label: 'Dishes' },
   { value: 'ingredients', label: 'Ingredients' },
@@ -196,7 +198,11 @@ function FoodSkill({ skill }: { skill: Canteen['random'][number] }) {
   return (
     <div style={{ maxWidth: 720 }}>
       <DetailHeader title={skill.skill} />
-      <p style={{ margin: 0, fontSize: 14 * scale, whiteSpace: 'pre-line' }}>{skill.desc}</p>
+      <p style={{ margin: '0 0 8px', color: 'var(--muted)', fontStyle: 'italic', fontSize: 13 * scale, whiteSpace: 'pre-line' }}>{skill.desc}</p>
+      {skill.brief && <p style={{ margin: 0, fontSize: 14 * scale }}>{skill.brief}</p>}
+      <p style={{ margin: '6px 0 0', fontSize: 12 * scale }}>
+        <a href={`${EXPLAINED}#f${skill.id}`} target="_blank" rel="noopener">More detail in MHGU Armor Skills Explained</a>
+      </p>
     </div>
   )
 }

@@ -125,7 +125,7 @@ CHANCE = [{'normal': 80, 'fired': '100', 'gourmet': 100},
           {'normal': 0, 'fired': '30–70', 'gourmet': 100}]
 
 
-def build(gmd, write, quest_info):
+def build(gmd, write, quest_info, brief):
     K = gmd('Kitchen_eng.gmd')
     cats = gmd('catSkillData_eng.gmd')
     skill = lambda i: cats[3 * i]
@@ -161,7 +161,7 @@ def build(gmd, write, quest_info):
 
     def draw(name):
         d = open(ROM + 'table/' + name, 'rb').read()
-        return [{'id': k, 'skill': skill(k), 'desc': cats[3 * k + 1]} for k, o in
+        return [{'id': k, 'skill': skill(k), 'desc': cats[3 * k + 1], 'brief': brief.get(k, '')} for k, o in
                 (struct.unpack_from('<2i', d, 8 + 8 * i) for i in range(struct.unpack_from('<I', d, 4)[0]))]
 
     ways = unlocks(gmd, quest_info)

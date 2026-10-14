@@ -12,7 +12,7 @@ export interface Skill {
   name: string
   desc: string
   trees: { tree: number; points: number }[]
-  explanation: string   // Markdown subset (paragraphs, "- " lists, pipe tables, **bold**)
+  brief: string         // a short explanation; the full one is in MHGU Armor Skills Explained
   grantedBy: string[]
 }
 

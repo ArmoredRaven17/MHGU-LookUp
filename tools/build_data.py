@@ -102,9 +102,20 @@ def skills():
             continue                       # a skill no tree reaches is not one a player can activate
         p = plain.get(sid, {})
         out.append({'id': sid, 'name': sk[2 * sid], 'desc': sk[2 * sid + 1], 'trees': in_tree[sid],
-                    'explanation': p.get('explanation', ''), 'grantedBy': p.get('grantedBy', [])})
+                    'brief': briefs('armor').get(sid, ''), 'grantedBy': p.get('grantedBy', [])})
     write('skills.json', {'trees': trees, 'skills': out})
-    print('  trees', len(trees), 'skills', len(out), 'explained', sum(1 for s in out if s['explanation']))
+    print('  trees', len(trees), 'skills', len(out), 'brief', sum(1 for s in out if s['brief']))
+
+
+def briefs(kind):
+    """{skill id: brief text} for 'armor' or 'food': tools/brief/*.json, short explanations written from the
+    ROM-read write-ups in MHGU Armor Skills Explained (the app links each skill to its full write-up)."""
+    out = {}
+    for f in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'brief', '*.json'))):
+        for r in json.load(open(f, encoding='utf8')):
+            if r['kind'] == kind and r['brief']:
+                out[r['id']] = r['brief']
+    return out
 
 
 # ── Hunting Styles ──────────────────────────────────────────────────────────────────────────
@@ -378,7 +389,7 @@ def canteen():
     import build_canteen
     with open(os.path.join(OUT, 'quests.json'), encoding='utf8') as f:     # written by quests() above
         info = {q['id']: q for q in json.load(f)}
-    build_canteen.build(gmd, write, info)
+    build_canteen.build(gmd, write, info, briefs('food'))
 
 
 # ── Items ───────────────────────────────────────────────────────────────────────────────────

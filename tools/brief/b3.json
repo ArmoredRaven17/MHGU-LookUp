@@ -1,0 +1,487 @@
+[
+ {
+  "kind": "armor",
+  "id": 295,
+  "brief": "Counts as Sharpness +2 (+50 max sharpness), Bombardier (blast x1.2, bomb Combinations always succeed), Shot Booster and Speed Sharpening (whetstone in one stroke). Doesn't stack with those skills."
+ },
+ {
+  "kind": "armor",
+  "id": 296,
+  "brief": "Counts as HG Earplugs (blocks large and small roars), Reload Speed +3, Steady Hand (no bounces, half sharpness loss) and Trap Master (trap Combinations always succeed). Doesn't stack with those skills."
+ },
+ {
+  "kind": "armor",
+  "id": 297,
+  "brief": "Counts as Guard +2 (guard power -20), Quick Sheath (x1.4 sheathing) and Bladescale Hone (evading with the weapon drawn restores sharpness). Doesn't stack with those skills."
+ },
+ {
+  "kind": "armor",
+  "id": 298,
+  "brief": "Counts as Critical Eye +3 (+30% affinity) and Challenger +2 (+20 attack, +15% affinity once a large monster in your area has been enraged for 3 s), so +45% affinity when enraged. Doesn't stack with those skills."
+ },
+ {
+  "kind": "armor",
+  "id": 299,
+  "brief": "Counts as Critical Boost (crits x1.4), Bonus Shot, Sharpness +1 and Chance Seizer (Health lost from some hits fills your Arts, Valor and Alchemy gauges). Doesn't stack with those skills."
+ },
+ {
+  "kind": "armor",
+  "id": 300,
+  "brief": "Counts as Marathon Runner, Bludgeoner, Normal/Rapid Up (x1.1) and Attack Up (M) (+15 attack). An Attack Up (L) source replaces the +15 rather than adding to it."
+ },
+ {
+  "kind": "armor",
+  "id": 301,
+  "brief": "Counts as Attack Up (L) (+20 attack), Evasion +2 (roll invulnerability 0.2 s to 0.4 s) and Composed (Arts, Alchemy and Valor gauges fill x1.15). Doesn't stack with those skills."
+ },
+ {
+  "kind": "armor",
+  "id": 302,
+  "brief": "Fortify (attack x1.1/x1.2, defense x1.15/x1.3 after 1/2+ faints), Marathon Runner (Stamina costs and drains halved) and Stamina Thief (exhaust x1.2). No extra Fortify from other sources."
+ },
+ {
+  "kind": "armor",
+  "id": 303,
+  "brief": "Hits that would bounce land instead, sharpness loss is halved, and Blind Eye's forced bounces are switched off."
+ },
+ {
+  "kind": "armor",
+  "id": 304,
+  "brief": "Speed Eating +2 (items x1.7, meat x1.8 speed), Meat Lover (Raw Meat usable, Rare and Well-done Steaks stop Stamina drain for 60 seconds) and Mushromancer (mushrooms give item effects) in one."
+ },
+ {
+  "kind": "armor",
+  "id": 305,
+  "brief": "Bombardier (bomb explosions x1.3, Blast x1.2) plus Trap Master: bomb and trap Combinations always succeed, and five item-placing actions run at double speed."
+ },
+ {
+  "kind": "armor",
+  "id": 306,
+  "brief": "Your hits build x1.1 stun (KO) and x1.2 exhaust. It only helps attacks that already carry stun or exhaust, such as impact attacks."
+ },
+ {
+  "kind": "armor",
+  "id": 307,
+  "brief": "Recovery Up (all Health recovery x1.25) plus Divine Blessing (25% chance a hit deals x0.7 damage). It also stops Demonic Blessing from ever triggering."
+ },
+ {
+  "kind": "armor",
+  "id": 308,
+  "brief": "Load Up (+1 ammo, Bow charge level or Gunlance shell), Combination +20% and Sneak (monsters weigh you x0.8 when choosing a target). It cancels Taunt."
+ },
+ {
+  "kind": "armor",
+  "id": 309,
+  "brief": "+20 attack (as Attack Up (L)) and +1 sharpness step (as Sharpness +1). Doesn't stack with Attack Up (L) itself."
+ },
+ {
+  "kind": "armor",
+  "id": 310,
+  "brief": "Normal S, Rapid arrows, Pierce S and Pierce arrows x1.1; Pellet S x1.2 and Spread arrows x1.3. Heavy S and Heavy arrows are not included, and it adds nothing to the single skills it contains."
+ },
+ {
+  "kind": "armor",
+  "id": 311,
+  "brief": "You can't be poisoned, paralyzed, put to sleep or stunned, and an existing poison does no damage."
+ },
+ {
+  "kind": "armor",
+  "id": 312,
+  "brief": "Attack x1.3 at 40% Health or less, plus Guts: some hits that would make you faint leave you at 1 Health once, if you had 64 or more. Worrywart has no effect."
+ },
+ {
+  "kind": "armor",
+  "id": 313,
+  "brief": "One-off Stamina costs such as rolls x0.75, and the roll's invulnerability goes from 0.2 s to 0.33 s. Adds nothing if you already have Evasion +2 and Constitution +2."
+ },
+ {
+  "kind": "armor",
+  "id": 314,
+  "brief": "Draw attacks deal their stun value and exhaust, +5 attack on Blademaster weapons except the Hammer and Hunting Horn, and sheathing is x1.4 faster on every weapon."
+ },
+ {
+  "kind": "armor",
+  "id": 315,
+  "brief": "Defense x1.03 then +20 (as Defense Up (M)), and attacks that would lower your Defense do nothing (as Iron Skin)."
+ },
+ {
+  "kind": "armor",
+  "id": 316,
+  "brief": "+20% affinity, plus +50% affinity on hits to weak hitzones (value 45 or more). With 0% weapon affinity, weak-spot hits roll at 70%."
+ },
+ {
+  "kind": "armor",
+  "id": 317,
+  "brief": "The Great Sword and shield weapons can block attacks that need Guard Up, blocked hits can't lower your Defense, and Stamina recovers x2."
+ },
+ {
+  "kind": "armor",
+  "id": 318,
+  "brief": "Every evade travels further, and +20 attack while your Health is full (not while Challenger's state is up)."
+ },
+ {
+  "kind": "armor",
+  "id": 319,
+  "brief": "All five elements x1.1 on your weapon, shots and arrows, plus Item Use Up's longer item effects. All element multipliers together are capped at x1.2."
+ },
+ {
+  "kind": "armor",
+  "id": 320,
+  "brief": "30% chance of an extra charm when you get a Mystery, Shining, Timeworn or Enduring Charm, and a gathering point is used up less often (5 in 32 per gather instead of 7 in 32)."
+ },
+ {
+  "kind": "armor",
+  "id": 321,
+  "brief": "Great Luck (each extra-reward roll succeeds 28 in 32 instead of 22 in 32) and Capture Expert (every capture gives exactly 3 capture rewards)."
+ },
+ {
+  "kind": "armor",
+  "id": 322,
+  "brief": "Polar Hunter (+15 attack, +20 defence and no Stamina drain in cold areas), Windproof (Hi) (small and large wind pressure negated) and Negate Bind (binds such as Snowman don't take hold)."
+ },
+ {
+  "kind": "armor",
+  "id": 323,
+  "brief": "Negate Poison (Deadly Poison lands only as ordinary poison), Anti-Theft (monsters can't steal your items) and Autotracker (large monsters always shown on the map)."
+ },
+ {
+  "kind": "armor",
+  "id": 324,
+  "brief": "Tropic Hunter (+15 attack, +20 defence and no heat damage in hot areas), Fire Res +20, and Bio Researcher (prevents Stench and Blastblight; Dung Bomb Combinations always succeed)."
+ },
+ {
+  "kind": "armor",
+  "id": 326,
+  "brief": "Adds +2 points to every skill tree you already have points in, so +8 reaches +10. Negative trees rise too (-10 to -8), switching their skill off."
+ },
+ {
+  "kind": "armor",
+  "id": 327,
+  "brief": "Your talisman's skill points, including its decorations, count twice; negative points double too. Does nothing without a talisman."
+ },
+ {
+  "kind": "food",
+  "id": 5,
+  "brief": "Barrel Bomb L explodes like a Barrel Bomb L+ and Bounce Bomb like a Bounce Bomb+, and blast buildup is x1.1 (held to x1.25 total with Bombardier)."
+ },
+ {
+  "kind": "food",
+  "id": 6,
+  "brief": "Poison, paralysis and sleep build up x1.125 plus a small fixed bonus, on weapons, shots, coatings and thrown items. Shares a x1.25 limit with Status Atk."
+ },
+ {
+  "kind": "food",
+  "id": 15,
+  "brief": "Normal S Lv1-3 and the Light Bowgun's charged shots deal x1.1 damage; nothing for Bow arrows. Stacks fully with Normal/Rapid Up for x1.21."
+ },
+ {
+  "kind": "food",
+  "id": 21,
+  "brief": "Stones, throwing knives (not the Tranq Knife) and Boomerangs deal x2 damage, and stones, knives, paintballs and some bombs fly 1.5x faster. Dung Bomb combinations always succeed."
+ },
+ {
+  "kind": "food",
+  "id": 30,
+  "brief": "Bowgun shots (not Wyvern S) and Bow arrows deal x1.05 damage, but deviation goes up one level and arrows scatter more. Steadiness cancels the deviation level for level."
+ },
+ {
+  "kind": "food",
+  "id": 40,
+  "brief": "Your hits build x1.1 stun, covering melee hits, Bow arrows, phials and some bowgun shots. It is the same bonus as Knockout King, so it does nothing with it."
+ },
+ {
+  "kind": "food",
+  "id": 42,
+  "brief": "Gunlance shells, Wyvern's Fire and ballista x1.1; Charge Blade phials, Crag S, Cannon S and Wyvern S x1.15. Stacks with Artillery up to each source's limit (x1.3 or x1.4)."
+ },
+ {
+  "kind": "food",
+  "id": 44,
+  "brief": "Dung Bombs and Dung S hit 1.5 times as hard with their dung effect, and the Dung Bomb combination always succeeds (normally 75%)."
+ },
+ {
+  "kind": "food",
+  "id": 18,
+  "brief": "Attack x1.35 while your Health is 10 or less (a fixed 10, not a percentage). With Adrenaline +2 it replaces the x1.3 rather than adding to it."
+ },
+ {
+  "kind": "food",
+  "id": 19,
+  "brief": "When one of your hits bounces, you lose 1 Sharpness instead of 2. It does not stack with Razor Sharp."
+ },
+ {
+  "kind": "food",
+  "id": 31,
+  "brief": "Kicks hit 5 times as hard, though a kick is still a weak attack."
+ },
+ {
+  "kind": "food",
+  "id": 32,
+  "brief": "The Shadowbox gesture hits 5 times as hard; it is still very weak, so this is mostly for fun."
+ },
+ {
+  "kind": "food",
+  "id": 37,
+  "brief": "Hold the Kick Back gesture for 5 seconds to get +15 Attack for 30 seconds. It shares the timed Attack boost of some consumables, so the last one used replaces the other."
+ },
+ {
+  "kind": "food",
+  "id": 38,
+  "brief": "After a bounce, your following hits count x1.1 sharper per bounce in a row, so they bounce less and deal x1.1 raw damage. Other actions reset it."
+ },
+ {
+  "kind": "food",
+  "id": 49,
+  "brief": "Sharpening often takes 1 to 3 whetstone strokes instead of 4: about 3.1 seconds on average instead of 4.3. Adds nothing to Speed Sharpening."
+ },
+ {
+  "kind": "food",
+  "id": 53,
+  "brief": "+3 Attack and +10 Defense for the first 10 minutes of the quest, counted on the quest timer."
+ },
+ {
+  "kind": "food",
+  "id": 59,
+  "brief": "Jumping attacks build mounting x1.125 faster. Stacks with Mounting Master and Airborne up to a x1.4 cap; no help in the struggle once mounted."
+ },
+ {
+  "kind": "food",
+  "id": 60,
+  "brief": "Your hits on a monster another hunter is riding fill the rider's struggle gauge x1.2 faster. It never helps your own mounts."
+ },
+ {
+  "kind": "food",
+  "id": 62,
+  "brief": "Monsters pay x1.5 as much attention to you, so you are targeted more. Same boost as Taunt and doesn't stack with it."
+ },
+ {
+  "kind": "food",
+  "id": 3,
+  "brief": "Healing items restore 10% more Health (Potion 30 to 33), and an Antidote Herb or Bitterbug always cures poison. Stacks with Recovery Up."
+ },
+ {
+  "kind": "food",
+  "id": 4,
+  "brief": "Rolls and other one-off moves cost 25% less Stamina, like one extra step of Constitution (half cost is the limit)."
+ },
+ {
+  "kind": "food",
+  "id": 7,
+  "brief": "Each hit has a 25% chance to deal only 70% of its damage. With Divine Blessing it gets a second try, about 44% in total."
+ },
+ {
+  "kind": "food",
+  "id": 8,
+  "brief": "Each hit has a 12.5% (1 in 8) chance to deal only 70% of its damage. With Felyne Defender (Hi) in the meal only Hi counts."
+ },
+ {
+  "kind": "food",
+  "id": 20,
+  "brief": "Sprinting drains Stamina half as fast (about 5 per second instead of 10) on any sprint, not only when fleeing large monsters."
+ },
+ {
+  "kind": "food",
+  "id": 22,
+  "brief": "You never do the startled flinch when a monster first spots you."
+ },
+ {
+  "kind": "food",
+  "id": 23,
+  "brief": "Running while carrying a transport item drains Stamina half as fast, and hits don't knock you back while you carry one. It doesn't slow the normal sprint."
+ },
+ {
+  "kind": "food",
+  "id": 24,
+  "brief": "Hits no longer knock you back while you carry a transport item. Adds nothing alongside Felyne Supercat."
+ },
+ {
+  "kind": "food",
+  "id": 33,
+  "brief": "Certain evades cost 25% less Stamina, and during some movements hits don't knock you back while you have Health. Includes Felyne Gripper's effect."
+ },
+ {
+  "kind": "food",
+  "id": 34,
+  "brief": "During some movements, hits don't knock you back as long as you still have Health. Adds nothing alongside Felyne Cliffhanger."
+ },
+ {
+  "kind": "food",
+  "id": 35,
+  "brief": "Hits don't knock you out of carving. Same effect as Carving Pro, so it adds nothing with it or Carving Celebrity."
+ },
+ {
+  "kind": "food",
+  "id": 46,
+  "brief": "Protects from harmful ground, not hot or cold areas: no damage from the slower-burning hot ground, no Iceblight from freezing ground, no poison from poison ground."
+ },
+ {
+  "kind": "food",
+  "id": 28,
+  "brief": "After getting up from a knockdown you stay untouchable for 0.6 s instead of the normal 0.2 s."
+ },
+ {
+  "kind": "food",
+  "id": 29,
+  "brief": "After getting up from a knockdown you stay untouchable for 0.4 s instead of the normal 0.2 s."
+ },
+ {
+  "kind": "food",
+  "id": 36,
+  "brief": "You always land normally from any height instead of stumbling, and can act straight away. Works for Prowlers too."
+ },
+ {
+  "kind": "food",
+  "id": 39,
+  "brief": "Keeps your meal's extra Health, Attack and other bonuses after a faint for the rest of the quest. Felyne skills stay active after a faint even without it."
+ },
+ {
+  "kind": "food",
+  "id": 43,
+  "brief": "Survive one hit that would make you faint, on 1 Health, if you had at least 64 Health. Once per quest; with Guts it is a separate second save."
+ },
+ {
+  "kind": "food",
+  "id": 45,
+  "brief": "Defense Down lasts 90 s instead of 3 min and Resistance Down 1 min instead of 2, and each roll shakes off much more of a blight."
+ },
+ {
+  "kind": "food",
+  "id": 47,
+  "brief": "Breaking free of a large monster's pin takes about half the presses (2 count where 4 were needed). Works for Prowlers too."
+ },
+ {
+  "kind": "food",
+  "id": 50,
+  "brief": "When a monster sends you flying, you recover quickly instead of a long tumble. Being knocked onto your backside is Felyne Feet's job."
+ },
+ {
+  "kind": "food",
+  "id": 55,
+  "brief": "Monster attacks can't put you to sleep, like Negate Sleep, but you can't use the base camp bed."
+ },
+ {
+  "kind": "food",
+  "id": 56,
+  "brief": "Attacks that would knock you onto your backside only make you flinch. It doesn't stop being sent flying or being grabbed."
+ },
+ {
+  "kind": "food",
+  "id": 64,
+  "brief": "When you faint, every teammate in the same area gets 100 Health back. It does nothing for yourself."
+ },
+ {
+  "kind": "food",
+  "id": 16,
+  "brief": "One guaranteed extra item in each of your two main quest-reward lists, on top of your normal luck. Replaces Lucky Cat and stacks with the luck skills."
+ },
+ {
+  "kind": "food",
+  "id": 17,
+  "brief": "50% chance of one extra item in each of your two main quest-reward lists, rolled separately. Stacks with Good Luck and the other luck skills."
+ },
+ {
+  "kind": "food",
+  "id": 25,
+  "brief": "Large monsters can no longer roll tougher than the quest's base health and attack; they come out at base or weaker. Online, anyone in the party having it counts."
+ },
+ {
+  "kind": "food",
+  "id": 26,
+  "brief": "You always start in the map's hidden area on quests with random starting points. No effect on Verdant Hills and Jungle."
+ },
+ {
+  "kind": "food",
+  "id": 27,
+  "brief": "x1.5 Hunter Rank Points for the quest's main, subquest and bonus rewards. Faint and failure penalties are not multiplied."
+ },
+ {
+  "kind": "food",
+  "id": 41,
+  "brief": "Quest reward money x1.5 (50%), x1.75 (30%) or x2.0 (20%), on cleared quests only. Shopkeeping is ignored while you have it."
+ },
+ {
+  "kind": "food",
+  "id": 48,
+  "brief": "Shows all large monsters on your map for the first 30 seconds of the quest. Useless with Autotracker."
+ },
+ {
+  "kind": "food",
+  "id": 51,
+  "brief": "On unstable quests the extra monster always appears, at the earliest time the quest allows. It doesn't change which monster comes."
+ },
+ {
+  "kind": "food",
+  "id": 52,
+  "brief": "Your Palicos get x1.5 experience at the end of the quest."
+ },
+ {
+  "kind": "food",
+  "id": 54,
+  "brief": "Both of the quest's later supply deliveries arrive right at the start. Only matters on quests with timed supply deliveries."
+ },
+ {
+  "kind": "food",
+  "id": 58,
+  "brief": "You start the quest with 25 health, maximum stamina cut to 25, or both (50% both). With Jinxed Cat too you get both plus 60 seconds of Confusion."
+ },
+ {
+  "kind": "food",
+  "id": 61,
+  "brief": "The party's first faint is free: it doesn't count toward the limit, cut reward money or cost Hunter Rank Points. Once per quest; one member having it is enough."
+ },
+ {
+  "kind": "food",
+  "id": 63,
+  "brief": "Wycademy Points from the quest x1.5 (50%), x1.75 (30%) or x2.0 (20%), including the smaller main reward of a failed quest."
+ },
+ {
+  "kind": "food",
+  "id": 65,
+  "brief": "You start with 60 seconds of Confusion, maximum stamina cut to 25, or both (50% both). Health is not touched."
+ },
+ {
+  "kind": "food",
+  "id": 1,
+  "brief": "26% chance of one extra carve on each monster you kill. Does nothing with Carving Celebrity, which already guarantees the extra carve."
+ },
+ {
+  "kind": "food",
+  "id": 2,
+  "brief": "13% chance of one extra carve on each monster you kill. Does nothing with Carving Celebrity, which already guarantees the extra carve."
+ },
+ {
+  "kind": "food",
+  "id": 9,
+  "brief": "A 1 in 4 chance to save a flute that was about to break, so flutes break a quarter less often. Stacks with the Whim skills and Horn Maestro."
+ },
+ {
+  "kind": "food",
+  "id": 10,
+  "brief": "A 1 in 4 chance to save a pickaxe or bug net that was about to break, so they break a quarter less often. Boomerangs aren't affected."
+ },
+ {
+  "kind": "food",
+  "id": 11,
+  "brief": "The Veggie Elder always lets you trade 6 times in a row; normally only the first 2 trades are certain."
+ },
+ {
+  "kind": "food",
+  "id": 12,
+  "brief": "+20% combination success, added on top of the Combination skills and Felyne Combiner (Lo). The rate can't go over 100%."
+ },
+ {
+  "kind": "food",
+  "id": 13,
+  "brief": "+10% combination success, added on top of the Combination skills and Felyne Combiner (Hi). The rate can't go over 100%."
+ },
+ {
+  "kind": "food",
+  "id": 14,
+  "brief": "Once a point's guaranteed gathers are used, each gather has a 12.5% chance of being its last instead of 21.9%. Stacks with the Gathering skills."
+ },
+ {
+  "kind": "food",
+  "id": 57,
+  "brief": "The fishing gauge fills in 7 steps instead of 10, Sushifish, Burst and Goldenfish Bait catch up to 3 fish instead of 2, and the next fish heads straight for the bait."
+ }
+]

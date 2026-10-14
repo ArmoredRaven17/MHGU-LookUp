@@ -28,8 +28,8 @@ export default function AboutPage() {
           Monster Viewer.
         </P>
         <P>
-          The armor skill explanations are the ones written for MHGU Armor Skills Explained, read from the
-          game's code and data the same way.
+          The short armor and food skill explanations are written from the ones in MHGU Armor Skills Explained,
+          which were read from the game's code and data the same way; each skill links to its full explanation there.
         </P>
 
         <H>Development</H>
