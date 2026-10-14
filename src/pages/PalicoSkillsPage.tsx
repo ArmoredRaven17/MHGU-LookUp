@@ -5,21 +5,27 @@ import ListPage, { DetailHeader } from '../components/ListPage'
 import GameText from '../components/GameText'
 import { useTextScale } from '../theme/textScale'
 
-// Route: /palicoskills/s<id> (a Palico Skill), /palicoskills/m<id> (a Support Move).
+// Route: /palicoskills/s<id> (a Palico Skill), /palicoskills/m<id> (a Support Move), /palicoskills/b<id> (a Support Bias).
 // Every label is the game's own text (palico.json `labels`).
 const flat = (s: string) => s.replace(/-\n/g, '-').replace(/\n/g, ' ')
 
 export default function PalicoSkillsPage() {
   const { id } = useParams()
   const [data, setData] = useState<Palico | null>(null)
-  const [view, setView] = useState(id?.startsWith('m') ? 'moves' : 'skills')
+  const [view, setView] = useState(id?.startsWith('m') ? 'moves' : id?.startsWith('b') ? 'biases' : 'skills')
   useEffect(() => { loadPalico().then(setData) }, [])
-  useEffect(() => { if (id?.startsWith('m')) setView('moves'); else if (id?.startsWith('s')) setView('skills') }, [id])
+  useEffect(() => {
+    if (id?.startsWith('m')) setView('moves'); else if (id?.startsWith('b')) setView('biases'); else if (id?.startsWith('s')) setView('skills')
+  }, [id])
 
-  const views = data ? [{ value: 'skills', label: data.labels.skills }, { value: 'moves', label: data.labels.moves }] : []
+  const views = data ? [{ value: 'skills', label: data.labels.skills }, { value: 'moves', label: data.labels.moves },
+    { value: 'biases', label: data.labels.bias }] : []
 
   const entries = useMemo(() => {
     if (!data) return []
+    if (view === 'biases') {
+      return data.biases.map(b => ({ key: `b${b.id}`, label: b.name, group: data.labels.bias, search: flat(b.desc) }))
+    }
     if (view === 'moves') {
       // grouped by Type, in the game's order of the types (OtMenuMsg 28..33) and its own sort order within each
       const kinds = [...new Set(data.moves.map(m => m.kind))].sort((a, b) => a - b)
@@ -35,11 +41,20 @@ export default function PalicoSkillsPage() {
     const n = +id.slice(1)
     if (id[0] === 's') { const s = data.skills.find(x => x.id === n); if (s) detail = <SkillDetail key={id} data={data} s={s} /> }
     if (id[0] === 'm') { const m = data.moves.find(x => x.id === n); if (m) detail = <MoveDetail key={id} data={data} m={m} /> }
+    if (id[0] === 'b') {
+      const b = data.biases.find(x => x.id === n)
+      if (b) detail = (
+        <div style={{ maxWidth: 720 }}>
+          <DetailHeader title={b.name} sub={data.labels.bias} />
+          <GameText text={b.desc} style={{ margin: 0 }} />
+        </div>
+      )
+    }
   }
 
   return (
-    <ListPage entries={entries} base="/palicoskills" selected={id} placeholder="Search skills or moves…"
-              emptyText="Select a Palico Skill or a Support Move." filter={{ value: view, options: views, onChange: setView }}>
+    <ListPage entries={entries} base="/palicoskills" selected={id} placeholder="Search skills, moves or biases…"
+              emptyText="Select a Palico Skill, a Support Move or a Support Bias." filter={{ value: view, options: views, onChange: setView }}>
       {detail}
     </ListPage>
   )

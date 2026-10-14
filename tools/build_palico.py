@@ -12,7 +12,11 @@ against mhgu.db (the Collection Tracker's database) and, where the screen shows 
   Screen text (StartMenuMsg_eng.gmd, file 9 of the message getter 0x55a7f8): Atk Type = 497 + mAttackTree
   (Cutting / Blunt; 0x583378: the class's vt+0x124 reads it); mSpType picks 499 / 500 / 501 (Balanced / Close Range
   / Boomerang) through the table at rodata 0x16298a0 (0x5841ec). Element ids are the hunter weapons' (Weapons tab).
-  Not shown: mKireColor (which value is which colour is not read), mBoomerangColor, mPrice (mhgu.db's forge cost is
+  Sharpness: mKireColor is on the hunters' colour scale (0 Red .. 6 Purple): the shared player function 0x29c63c
+  returns it for a Prowler (the weapon's vt+0x144) where a hunter gets the colour index off its sharpness gauge,
+  both stored at player +0x13f0 and read through vt+0x1fc. Handicraft (Palico Skill 10) adds 1, capped at 6
+  (0xe4ebc: any equipped skill slot +0x24c..+0x252 == 10).
+  Not shown: mBoomerangColor, mPrice (mhgu.db's forge cost is
   always 1.5 x mPrice; the code that charges it is not read), mSrqrNo.
 - Armor: table/otArmorData.oar, 33-byte cOtArmorBase rows, one per set (otArmorData_eng.gmd 4i head name,
   4i+1 body name, 4i+2 / 4i+3 their descriptions). u32 mIndex, u16 mSortID, u8 +6 mModelID, u8 +7 mRare,
@@ -36,6 +40,8 @@ against mhgu.db (the Collection Tracker's database) and, where the screen shows 
   mClearEnemy indexes the monster table at rodata 0x16216c0; none -> OtMenuMsg 82, else 80 'Slay/Capture %s.'
   (94 'Slay %s.' for moves 13 and 36, 0x264268) with the monster's name: monster id -> GUI/06_msg/monsterName_eng.gmd string
   through the [u32 id, u32 string] table at rodata 0x1594ca4 (0x50aa8).
+- Support Bias: bias n's name is CommonMsg 105 + n (0x55a958 returns n + 0x69) and its description OtMenuMsg
+  83 + n (0x55a960 returns n + 0x53); eight biases (Charisma .. Beast).
 """
 import struct, sys
 
@@ -84,7 +90,8 @@ def build(gmd, gmd_path, write):
         c = wcreate.get(i)
         weapons.append({
             'id': i, 'name': name, 'desc': W[2 * i + 1], 'rarity': r[22] + 1,
-            'atkType': start[497 + r[6]], 'style': start[u32(0x16298a0 + 4 * r[9])],
+            'atkType': start[497 + r[6]], 'style': start[u32(0x16298a0 + 4 * r[9])], 'spType': r[9],
+            'sharpness': r[7],
             'melee': {'attack': struct.unpack_from('<H', r, 10)[0], 'affinity': struct.unpack_from('<b', r, 12)[0],
                       'element': struct.unpack_from('<h', r, 13)[0]},
             'ranged': {'attack': struct.unpack_from('<H', r, 15)[0], 'affinity': struct.unpack_from('<b', r, 17)[0],
@@ -141,12 +148,15 @@ def build(gmd, gmd_path, write):
                       'gauge': cost * 10 // 1000, 'kind': kind, 'type': menu[28 + kind], 'condition': cond})
     moves.sort(key=lambda m: m['sort'])
 
-    out = {'weapons': weapons, 'head': head, 'body': body, 'skills': skills, 'moves': moves,
+    biases = [{'id': n, 'name': common[105 + n], 'desc': menu[83 + n]} for n in range(8)]
+
+    out = {'weapons': weapons, 'head': head, 'body': body, 'skills': skills, 'moves': moves, 'biases': biases,
            'labels': {'atkType': menu[76], 'melee': menu[69], 'ranged': menu[71], 'memory': menu[75],
                       'conditions': menu[36], 'gauge': menu[26], 'type': menu[27], 'head': menu[51],
                       'body': menu[52], 'skills': menu[47], 'moves': menu[46], 'equipment': menu[54],
                       'attack': common[54], 'element': common[55], 'defense': common[56], 'affinity': start[261],
-                      'rare': start[508], 'res': res, 'materials': shop[18], 'weapon': shop[15]}}
+                      'rare': start[508], 'res': res, 'materials': shop[18], 'weapon': shop[15], 'bias': menu[42],
+                      'sharpness': start[259], 'handicraft': K[2 * 10]}}
     write('palico.json', out)
     print('  palico: weapons', len(weapons), 'head', len(head), 'body', len(body), 'skills', len(skills),
-          'moves', len(moves))
+          'moves', len(moves), 'biases', len(biases))

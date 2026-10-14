@@ -54,7 +54,7 @@ export const loadItems       = () => load<Item[]>('items.json')
 export interface PalicoAttack { attack: number; affinity: number; element: number }
 export interface PalicoWeapon {
   id: number; name: string; desc: string; rarity: number
-  atkType: string; style: string; melee: PalicoAttack; ranged: PalicoAttack
+  atkType: string; style: string; spType: number; sharpness: number; melee: PalicoAttack; ranged: PalicoAttack
   elementType: string | null; defense: number; materials: [string, number][]
 }
 export interface PalicoArmor { id: number; name: string; desc: string; rarity: number; defense: number; res: number[]; materials: [string, number][] }
@@ -62,6 +62,7 @@ export interface PalicoSkill { id: number; name: string; desc: string; memory: n
 export interface PalicoMove { id: number; sort: number; name: string; desc: string; gauge: number; kind: number; type: string; condition: string }
 export interface Palico {
   weapons: PalicoWeapon[]; head: PalicoArmor[]; body: PalicoArmor[]; skills: PalicoSkill[]; moves: PalicoMove[]
+  biases: { id: number; name: string; desc: string }[]
   labels: Record<string, string> & { res: string[] }
 }
 export const loadPalico = () => load<Palico>('palico.json')

@@ -3,12 +3,23 @@ import { useParams } from 'react-router-dom'
 import { loadPalico, type Palico, type PalicoArmor, type PalicoAttack, type PalicoWeapon } from '../data/loaders'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import GameText from '../components/GameText'
-import { Materials } from '../components/Equipment'
+import { Materials, SHARP_COLOURS, SHARP_NAMES } from '../components/Equipment'
 import { useTextScale } from '../theme/textScale'
 
 // Route: /palicogear/w<row> (a weapon), /palicogear/h<row> (head armor), /palicogear/b<row> (body armor).
 // Every label is the game's own text (palico.json `labels`).
 const plain = (s: string) => s.replace(/<[^>]*>/g, '')
+// Raven's colours for the three weapon types (the game shows all three in the same yellow): Balanced, Close Range, Boomerang
+const STYLE_COLOURS = ['#b05ad8', '#e04848', '#3a8fe8']
+
+function Sharp({ v }: { v: number }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ width: 28, height: 10, background: SHARP_COLOURS[v], border: '1px solid var(--border)' }} />
+      {SHARP_NAMES[v]}
+    </span>
+  )
+}
 const rare = (p: Palico, n: number) => p.labels.rare.replace('%d', String(n))
 
 function viewOf(id: string | undefined) {
@@ -88,7 +99,9 @@ function WeaponDetail({ data, w }: { data: Palico; w: PalicoWeapon }) {
       <Section title={L.equipment}>
         <table style={{ borderCollapse: 'collapse', fontSize: 13 * scale }}><tbody>
           <Row k={L.atkType}>{w.atkType}</Row>
-          <tr className="tbl-row"><td className="tbl-cell" colSpan={2}><GameText text={w.style} style={{ margin: 0 }} /></td></tr>
+          <tr className="tbl-row"><td className="tbl-cell" colSpan={2} style={{ color: STYLE_COLOURS[w.spType], fontWeight: 600 }}>{plain(w.style)}</td></tr>
+          <Row k={L.sharpness}><Sharp v={w.sharpness} /></Row>
+          {w.sharpness < 6 && <Row k={`+ ${L.handicraft}`}><Sharp v={w.sharpness + 1} /></Row>}
           <AttackRows data={data} title={L.melee} a={w.melee} element={w.elementType} />
           <AttackRows data={data} title={L.ranged} a={w.ranged} element={w.elementType} />
           {w.defense > 0 && <Row k={L.defense}>+{w.defense}</Row>}

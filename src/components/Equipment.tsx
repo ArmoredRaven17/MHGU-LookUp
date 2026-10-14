@@ -2,8 +2,8 @@ import type { Material } from '../types'
 import { useTextScale } from '../theme/textScale'
 
 // Sharpness colours, in the table's order (red .. purple).
-const SHARP_COLOURS = ['#d22b2b', '#e8822a', '#e8d22a', '#5cc23a', '#3a7fe0', '#f2f2f2', '#b05ad8']
-const SHARP_NAMES = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'White', 'Purple']
+export const SHARP_COLOURS = ['#d22b2b', '#e8822a', '#e8d22a', '#5cc23a', '#3a7fe0', '#f2f2f2', '#b05ad8']
+export const SHARP_NAMES = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'White', 'Purple']
 
 /** One sharpness gauge: the table row (where each colour ends) cut at `length`. */
 export function SharpnessBar({ row, length, max }: { row: number[]; length: number; max: number }) {
