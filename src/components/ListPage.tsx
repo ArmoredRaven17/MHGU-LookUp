@@ -11,6 +11,8 @@ export interface ListEntry {
   sub?: string         // a muted second line
   search?: string      // extra text the search box matches, beyond the label
   indent?: number      // depth in a tree (the weapons' upgrade tree); dropped while searching
+  tree?: boolean       // draw `indent` as branch lines (│ ├ └) with a collapse toggle, as the MHFU LookUp does;
+                       // the entries must then come in tree order (each child after its parent, one level deeper)
   group?: string       // a heading the entry is listed under (entries come already ordered by group)
   icon?: string        // an icon shown before the label (the game's own, see src/data/icons.ts)
 }
@@ -30,10 +32,28 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
 
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const toggle = (key: string) => setCollapsed(c => { const n = new Set(c); if (n.has(key)) n.delete(key); else n.add(key); return n })
+
+  // Branch lines per entry (tree lists): one cell per level, 0 blank, 1 │, 2 ├, 3 └ (the last is its own).
+  const lines = useMemo(() => treeLines(entries), [entries])
+
   const shown = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return q ? entries.filter(e => (e.label + ' ' + (e.search ?? '')).toLowerCase().includes(q)) : entries
-  }, [entries, search])
+    if (q) return entries.filter(e => (e.label + ' ' + (e.search ?? '')).toLowerCase().includes(q))
+    if (!collapsed.size) return entries
+    const out: ListEntry[] = []
+    let hideBelow = -1                       // hide entries deeper than this until the branch ends
+    for (const e of entries) {
+      const d = e.indent ?? 0
+      if (hideBelow >= 0 && d > hideBelow) continue
+      hideBelow = -1
+      out.push(e)
+      if (e.tree && collapsed.has(e.key)) hideBelow = d
+    }
+    return out
+  }, [entries, search, collapsed])
+  const searching = !!search.trim()
 
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
@@ -67,13 +87,24 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
               )}
               <button onClick={() => navigate(`${base}/${e.key}`)} style={{
                 display: 'block', width: '100%', padding: '5px 12px',
-                paddingLeft: 12 + (search.trim() ? 0 : Math.min(e.indent ?? 0, 8) * 10),
+                paddingLeft: e.tree ? 6 : 12 + (searching ? 0 : Math.min(e.indent ?? 0, 8) * 10),
                 background: active ? 'var(--header-bg)' : 'transparent',
                 border: 'none', borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
                 color: active ? 'var(--accent)' : 'var(--text)',
                 cursor: 'pointer', textAlign: 'left', fontSize: 13 * scale,
               }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {e.tree && !searching && (
+                    <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, alignSelf: 'stretch', margin: '-5px 0' }}>
+                      {(lines.get(e.key) ?? []).map((g, k) => <Guide key={k} g={g} />)}
+                      {lines.get(`+${e.key}`)
+                        ? <span onClick={ev => { ev.stopPropagation(); toggle(e.key) }} title={collapsed.has(e.key) ? 'Expand' : 'Collapse'}
+                                style={{ width: 14, textAlign: 'center', cursor: 'pointer', color: 'var(--muted)' }}>
+                            {collapsed.has(e.key) ? '▸' : '▾'}
+                          </span>
+                        : <span style={{ width: 14 }} />}
+                    </span>
+                  )}
                   {e.icon && <img src={e.icon} alt="" width={22 * scale} height={22 * scale} style={{ imageRendering: 'pixelated', flexShrink: 0 }} />}
                   <span>
                     {e.label}
@@ -95,6 +126,45 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
       </div>
     </div>
   )
+}
+
+// One branch-line cell, drawn as lines so they join across rows of any height: 1 │, 2 ├, 3 └.
+function Guide({ g }: { g: number }) {
+  const line = 'color-mix(in srgb, var(--text) 35%, transparent)'
+  return (
+    <span style={{ position: 'relative', width: 14, alignSelf: 'stretch', flexShrink: 0 }}>
+      {g > 0 && <span style={{ position: 'absolute', left: 6, width: 1, top: 0, bottom: g === 3 ? '50%' : 0, background: line }} />}
+      {g > 1 && <span style={{ position: 'absolute', left: 6, right: 0, top: '50%', height: 1, background: line }} />}
+    </span>
+  )
+}
+
+// For entries in tree order (each child right after its parent, one level deeper): the branch-line cells of
+// each entry, keyed by its key, and `+key` set for the entries that have children.
+function treeLines(entries: ListEntry[]) {
+  const out = new Map<string, number[]>()
+  const depth = entries.map(e => e.indent ?? 0)
+  // whether entry i has a later sibling: scanning back, the nearest later entry at its depth before a shallower one
+  const later = new Array(entries.length).fill(false)
+  const seen: boolean[] = []                 // seen[d]: a later entry at depth d since the last shallower one
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const d = depth[i]
+    later[i] = !!seen[d]
+    seen.length = d + 1
+    seen[d] = true
+  }
+  const open: boolean[] = []                 // open[d]: the branch at level d continues below (draw │)
+  entries.forEach((e, i) => {
+    if (!e.tree) return
+    const d = depth[i]
+    const cells: number[] = []
+    for (let k = 0; k < d - 1; k++) cells.push(open[k + 1] ? 1 : 0)
+    if (d > 0) cells.push(later[i] ? 2 : 3)
+    open[d] = later[i]
+    out.set(e.key, cells)
+    if (i + 1 < entries.length && depth[i + 1] > d) out.set(`+${e.key}`, [])
+  })
+  return out
 }
 
 /** A detail page's heading block, with room for the bookmark button. */

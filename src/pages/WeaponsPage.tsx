@@ -24,7 +24,7 @@ export default function WeaponsPage() {
   const byRow = useMemo(() => new Map((current?.weapons ?? []).map(w => [w.row, w])), [current])
   const equip = useEquipIcons()
   const entries = useMemo(() => (current?.weapons ?? []).map(w => ({
-    key: String(w.row), label: w.name, sub: `Rarity ${w.rarity}`, indent: w.depth,
+    key: String(w.row), label: w.name, sub: `Rarity ${w.rarity}`, indent: w.depth, tree: true,
     search: w.forms.map(f => f.name).join(' '), icon: equip.weapon(current!.id, w.rarity),
   })), [current, equip])
   const weapon = current?.weapons.find(w => String(w.row) === row)
