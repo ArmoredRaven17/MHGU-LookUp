@@ -74,7 +74,7 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
         <Stats w={w} l={level} sharpness={sharpness} />
       </Section>
 
-      <Section title="Getting It">
+      <Section title="Material List">
         <table style={{ borderCollapse: 'collapse' }}>
           <tbody>
             {(w.create ?? []).map(c => (
@@ -93,18 +93,25 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
                 {forgeHere && <span className="text-muted"> (or forge it at this level, above)</span>}
               </Row>
             )}
-            {w.into.length > 0 && (
-              <Row k="Upgrades into">
-                {w.into.map((t, i) => {
-                  const to = byRow.get(t.row)
-                  return <span key={t.row}>{i > 0 && ', '}{to ? <Link to={`/weapons/${cls.id}/${t.row}`}>{to.name}</Link> : `#${t.row}`}
-                    <span className="text-muted"> (Lv {t.level})</span></span>
-                })}
-              </Row>
-            )}
           </tbody>
         </table>
       </Section>
+
+      {w.into.length > 0 && (
+        <Section title="Upgrade Paths">
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 * scale }}>
+            {w.into.map(t => {
+              const to = byRow.get(t.row)
+              return (
+                <li key={t.row} style={{ margin: '2px 0' }}>
+                  {to ? <Link to={`/weapons/${cls.id}/${t.row}`}>{to.name}</Link> : `#${t.row}`}
+                  <span className="text-muted"> (Lv {t.level})</span>
+                </li>
+              )
+            })}
+          </ul>
+        </Section>
+      )}
 
       <Section title="All Levels">
         <div style={{ overflowX: 'auto' }}>
