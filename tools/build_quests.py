@@ -1,7 +1,7 @@
 """Quests, read from the ROM: public/data/quests.json. Called by build_data.py.
 
 Every quest is one packed cQuestData (loc/quest/questData/questData_NNNNNNN.ext), read by the reader the Monster
-Viewer work wrote from cQuestData's own property registration (E:/offline/decode/lib/questdata.py: field names
+Viewer work wrote from cQuestData's own property registration (C:/MHGU-RE/offline/decode/lib/questdata.py: field names
 mQuestLv, mMonsterLv, mMapNo, mContract, ... and the five boss slots, mEmType's variant in the high byte).
 The quests listed are the ones the quest boards list (rQuestGroup, quest/quest_group in loc/arc/village/
 common.arc: [u32 quest, u8 attribute 1, u8 attribute 2, u8 mTitleVer]) whose own title is not a placeholder:
@@ -34,7 +34,7 @@ Not read yet: small-monster counts, the boss tables (VitalTblNo etc.).
 """
 import os, re, struct, sys
 
-sys.path.insert(0, 'E:/offline/decode/lib')
+sys.path.insert(0, 'C:/MHGU-RE/offline/decode/lib')
 import questdata                          # noqa: E402  (the shared cQuestData reader)
 import mh                                 # noqa: E402
 

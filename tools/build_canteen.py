@@ -41,7 +41,7 @@ import json, struct, sys
 
 ROM = 'C:/MHGU-ROM/romfs/nativeNX/'
 FOOD = 'C:/MHGU-Extract/food-skills/'
-sys.path.insert(0, 'E:/offline/decode/lib')
+sys.path.insert(0, 'C:/MHGU-RE/offline/decode/lib')
 import mh                                             # noqa: E402
 
 TALK_ARC = ROM + 'loc/arc/npc/talk.arc'

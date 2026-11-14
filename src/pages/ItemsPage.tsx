@@ -6,6 +6,7 @@ import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
 import GameText from '../components/GameText'
+import { useItemIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
 
 // The game has no item categories; these group the items' icon shapes (see tools/build_data.py).
@@ -21,6 +22,7 @@ const HEADINGS: Record<string, string> = {
 export default function ItemsPage() {
   const { id } = useParams()
   const scale = useTextScale()
+  const icons = useItemIcons()
   const [items, setItems] = useState<Item[]>([])
   const [sources, setSources] = useState<Record<string, Source[]>>({})
   useEffect(() => { loadItems().then(setItems); loadSources().then(setSources) }, [])
@@ -29,7 +31,7 @@ export default function ItemsPage() {
   const entries = useMemo(() => [...items]
     .filter(i => cat === 'all' || i.category === cat)
     .sort((a, b) => CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category) || a.name.localeCompare(b.name) || a.id - b.id)
-    .map(i => ({ key: String(i.id), label: i.name, group: i.category })), [items, cat])
+    .map(i => ({ key: String(i.id), label: i.name, group: i.category, icon: icons.byId(i.id) })), [items, cat, icons])
   const item = items.find(i => String(i.id) === id)
   const path = `/items/${id}`
 
@@ -40,7 +42,7 @@ export default function ItemsPage() {
                         options: [{ value: 'all', label: 'All items' }, ...CATEGORIES.map(c => ({ value: c, label: c }))] }}>
       {item && (
         <div style={{ maxWidth: 760 }}>
-          <DetailHeader title={item.name} sub={item.category}>
+          <DetailHeader title={item.name} sub={item.category} icon={icons.byId(item.id)}>
             <BookmarkButton bookmark={{ type: 'item', id: String(item.id), name: item.name, path }} />
           </DetailHeader>
           <Section title="In-Game Description">

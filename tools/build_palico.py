@@ -47,7 +47,7 @@ import struct, sys
 
 ROM = 'C:/MHGU-ROM/romfs/nativeNX/'
 RO = 0x13EF000
-sys.path.insert(0, 'E:/offline/decode/lib')
+sys.path.insert(0, 'C:/MHGU-RE/offline/decode/lib')
 import mh                                             # noqa: E402
 
 ELEMENT = [None, 'Fire', 'Water', 'Thunder', 'Dragon', 'Ice', 'Poison', 'Paralysis', 'Sleep', 'Blast']

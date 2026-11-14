@@ -1,4 +1,5 @@
 import type { Material } from '../types'
+import ItemName from './ItemName'
 import { useTextScale } from '../theme/textScale'
 
 // Sharpness colours, in the table's order (red .. purple).
@@ -32,7 +33,7 @@ export function Materials({ mats }: { mats: Material[] }) {
       {mats.map((m, i) => (
         <span key={i} style={{ whiteSpace: 'nowrap' }}>
           {i > 0 && ', '}
-          {m.length === 3 ? <>{m[0]} materials <span className="text-muted">{m[1]} pts</span></> : <>{m[0]} <span className="text-muted">×{m[1]}</span></>}
+          {m.length === 3 ? <>{m[0]} materials <span className="text-muted">{m[1]} pts</span></> : <><ItemName name={m[0]} /> <span className="text-muted">×{m[1]}</span></>}
         </span>
       ))}
     </span>

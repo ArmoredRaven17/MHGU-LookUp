@@ -7,6 +7,7 @@ import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
 import GameText from '../components/GameText'
 import { Materials, SlotsText } from '../components/Equipment'
+import { useItemIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
 
 const SLOT_FILTER = [
@@ -27,14 +28,15 @@ export default function DecorationsPage() {
     loadSkills().then(d => setTreeIds(new Map(d.trees.map(t => [t.name, t.id]))))
   }, [])
 
+  const icons = useItemIcons()
   const entries = useMemo(() => decos
     .filter(d => slots === 'all' || String(d.slots) === slots)
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(d => ({
-      key: String(d.id), label: d.name,
+      key: String(d.id), label: d.name, icon: icons.byId(d.id),
       sub: d.skills.map(([k, v]) => `${k} ${v > 0 ? '+' : ''}${v}`).join(', '),
       search: d.skills.map(s => s[0]).join(' '),
-    })), [decos, slots])
+    })), [decos, slots, icons])
   const deco = decos.find(d => String(d.id) === id)
   const path = `/decorations/${id}`
 
@@ -43,7 +45,7 @@ export default function DecorationsPage() {
               emptyText="Select a decoration from the list." filter={{ value: slots, options: SLOT_FILTER, onChange: setSlots }}>
       {deco && (
         <div style={{ maxWidth: 680 }}>
-          <DetailHeader title={deco.name}>
+          <DetailHeader title={deco.name} icon={icons.byId(deco.id)}>
             <BookmarkButton bookmark={{ type: 'decoration', id: String(deco.id), name: deco.name, path }} />
           </DetailHeader>
           <Section title="Decoration">

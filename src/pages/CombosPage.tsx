@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loadCombos } from '../data/loaders'
 import SearchBox from '../components/SearchBox'
+import ItemName from '../components/ItemName'
 import { useTextScale } from '../theme/textScale'
 
 interface Combo { a: string; b: string; result: string; rate: number; ids: [number, number, number] }
@@ -15,7 +16,7 @@ export default function CombosPage() {
     const s = q.trim().toLowerCase()
     return s ? combos.filter(c => `${c.a} ${c.b} ${c.result}`.toLowerCase().includes(s)) : combos
   }, [combos, q])
-  const item = (name: string, id: number) => <Link to={`/items/${id}`}>{name}</Link>
+  const item = (name: string, id: number) => <Link to={`/items/${id}`}><ItemName name={name} id={id} /></Link>
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div style={{ padding: '16px 16px 4px' }}>

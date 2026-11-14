@@ -399,6 +399,15 @@ def palico():
     build_palico.build(gmd, gmd_path, write)
 
 
+# ── Icons ───────────────────────────────────────────────────────────────────────────────────
+def icons():
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import build_icons, tempfile
+    s = gmd('itemData_eng.gmd')
+    with tempfile.TemporaryDirectory() as tmp:
+        build_icons.build(os.path.join(OUT, '..'), tmp, [s[2 * i] for i in range(len(s) // 2)])
+
+
 # ── Items ───────────────────────────────────────────────────────────────────────────────────
 def items(skip=()):
     s = gmd('itemData_eng.gmd')
@@ -435,4 +444,5 @@ if __name__ == '__main__':
     sources(names, gathered, rewarded)
     canteen()
     palico()
+    icons()
     items(decorations())

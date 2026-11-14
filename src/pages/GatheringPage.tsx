@@ -5,6 +5,7 @@ import type { GatherMap, GatherItem } from '../types'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
+import ItemName from '../components/ItemName'
 import { useTextScale } from '../theme/textScale'
 
 const RANKS = ['Low Rank', 'High Rank', 'G Rank']
@@ -38,7 +39,7 @@ function Items({ items }: { items: GatherItem[] }) {
       <tbody>
         {[...items].sort((a, b) => b[2] - a[2]).map(([name, qty, pct], i) => (
           <tr key={i} className="tbl-row">
-            <td className="tbl-cell" style={{ minWidth: 180 }}>{name}{qty > 1 && <span className="text-muted"> ×{qty}</span>}</td>
+            <td className="tbl-cell" style={{ minWidth: 180 }}><ItemName name={name} />{qty > 1 && <span className="text-muted"> ×{qty}</span>}</td>
             <td className="tbl-cell" style={{ textAlign: 'right', width: 48 }}>{pct}%</td>
           </tr>
         ))}

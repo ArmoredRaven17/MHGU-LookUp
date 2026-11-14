@@ -12,6 +12,7 @@ export interface ListEntry {
   search?: string      // extra text the search box matches, beyond the label
   indent?: number      // depth in a tree (the weapons' upgrade tree); dropped while searching
   group?: string       // a heading the entry is listed under (entries come already ordered by group)
+  icon?: string        // an icon shown before the label (the game's own, see src/data/icons.ts)
 }
 
 // The list + detail shell every lookup tab shares (from the MHFU LookUp): a resizable,
@@ -72,8 +73,13 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
                 color: active ? 'var(--accent)' : 'var(--text)',
                 cursor: 'pointer', textAlign: 'left', fontSize: 13 * scale,
               }}>
-                {e.label}
-                {e.sub && <span style={{ display: 'block', color: 'var(--muted)', fontSize: 11 * scale }}>{e.sub}</span>}
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {e.icon && <img src={e.icon} alt="" width={22 * scale} height={22 * scale} style={{ imageRendering: 'pixelated', flexShrink: 0 }} />}
+                  <span>
+                    {e.label}
+                    {e.sub && <span style={{ display: 'block', color: 'var(--muted)', fontSize: 11 * scale }}>{e.sub}</span>}
+                  </span>
+                </span>
               </button>
               </div>
             )
@@ -92,11 +98,12 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
 }
 
 /** A detail page's heading block, with room for the bookmark button. */
-export function DetailHeader({ title, sub, children }: { title: string; sub?: string; children?: ReactNode }) {
+export function DetailHeader({ title, sub, icon, children }: { title: string; sub?: string; icon?: string; children?: ReactNode }) {
   const scale = useTextScale()
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {icon && <img src={icon} alt="" width={40 * scale} height={40 * scale} style={{ imageRendering: 'pixelated' }} />}
         <h2 style={{ margin: 0, color: 'var(--text)', fontSize: 20 * scale, fontWeight: 600 }}>{title}</h2>
         {children}
       </div>

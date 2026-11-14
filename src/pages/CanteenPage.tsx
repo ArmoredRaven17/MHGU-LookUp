@@ -4,6 +4,7 @@ import { loadCanteen, type Canteen, type Dish, type IngredientUnlock } from '../
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
+import ItemName from '../components/ItemName'
 import { useTextScale } from '../theme/textScale'
 
 const EXPLAINED = 'https://armoredraven17.github.io/mhgu-armor-skills-explained/'
@@ -176,7 +177,7 @@ function Unlock({ u }: { u: IngredientUnlock }) {
   if (u.kind === 'request') {
     return (
       <>Fulfill {u.npc}'s Villager Request:{u.items.map((it, i) => (
-        <span key={it.id}>{i > 0 && ', '}<Link to={`/items/${it.id}`}>{it.name}</Link> ×{it.qty}</span>
+        <span key={it.id}>{i > 0 && ', '}<Link to={`/items/${it.id}`}><ItemName name={it.name} id={it.id} /></Link> ×{it.qty}</span>
       ))}.</>
     )
   }

@@ -26,7 +26,7 @@ Every list matches a mhgu.db gathering group exactly (item, quantity, percent); 
 """
 import struct, sys
 
-sys.path.insert(0, 'E:/offline/decode/lib')
+sys.path.insert(0, 'C:/MHGU-RE/offline/decode/lib')
 import mh                                         # noqa: E402
 
 STAGE = 'C:/MHGU-ROM/romfs/nativeNX/loc/arc/stage/map_com/m%02d.arc'
