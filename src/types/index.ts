@@ -34,6 +34,8 @@ export interface HunterArt {
   name: string
   short: string
   full: string
+  category: number                  // mArtsCategory: groups an Art's tiers; 1..10 the generic Arts
+  weapon: string | null             // weapon class (w00..w14), null for a generic Art
 }
 
 // A material: [name, quantity], or [category name, points, 'pts'] for a material-point cost.

@@ -136,7 +136,14 @@ def arts():
     s = gmd('hunterArtsData_eng.gmd')
     n = len(rows('hunterArtsData.hta', 25))
     assert 4 * n == len(s), (n, len(s))
-    out = [{'id': i, 'name': s[4 * i], 'short': s[4 * i + 2], 'full': s[4 * i + 3]}
+    # cHunterArtsBase +8 mArtsCategory groups an Art's tiers: 1..10 are the generic Arts; 11.. come four to a
+    # weapon class in the game's class order (11..14 w00, 15..18 w01, ..., 31..34 the removed w05 unused), so the
+    # class is (category - 11) // 4. Checked against the Quest Randomizer's Hunter Arts.json: 178/178 Arts.
+    hta = rows('hunterArtsData.hta', 25)
+    def weapon(cat):
+        return None if cat <= 10 else 'w%02d' % ((cat - 11) // 4)
+    out = [{'id': i, 'name': s[4 * i], 'short': s[4 * i + 2], 'full': s[4 * i + 3],
+            'category': struct.unpack_from('<I', hta[i], 8)[0], 'weapon': weapon(struct.unpack_from('<I', hta[i], 8)[0])}
            for i in range(1, n) if s[4 * i] not in ('@', '(None)')]     # '@' rows are empty slots
     write('arts.json', out)
     print('  arts', len(out))
