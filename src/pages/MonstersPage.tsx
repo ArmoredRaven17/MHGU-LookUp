@@ -17,6 +17,14 @@ const SIZE_FILTER = [
   { value: 'small', label: 'Small monsters' },
 ]
 
+// Hit-zone heat map, as the MHFU LookUp colours it: a cell's background by value tier.
+function hzBg(v: number) {
+  if (v >= 66) return '#2e5e2e'   // dark green: very weak
+  if (v >= 46) return '#6b3d00'   // dark orange
+  if (v >= 21) return '#5a5200'   // dark yellow
+  return '#383838'                // dark grey: resistant
+}
+
 export default function MonstersPage() {
   const { id } = useParams()
   const [data, setData] = useState<{ zoneTypes: string[]; classes: string[]; monsters: Monster[] }>({ zoneTypes: [], classes: [], monsters: [] })
@@ -47,11 +55,6 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
   const scale = useTextScale()
   const icon = useMonsterIcons()
   const path = `/monsters/${m.id}`
-  // Colour a hit-zone value: the higher, the more it takes.
-  const shade = (v: number, physical: boolean) => {
-    const hi = physical ? 45 : 20, mid = physical ? 25 : 10
-    return v >= hi ? 'var(--positive)' : v >= mid ? 'var(--text)' : 'var(--muted)'
-  }
   return (
     <div style={{ maxWidth: 900 }}>
       <DetailHeader title={m.name} icon={icon(m.id)} sub={[m.class, m.small ? 'Small monster' : 'Large monster'].filter(Boolean).join(' · ')}>
@@ -84,7 +87,7 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
                   <tr key={i} className="tbl-row">
                     <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>{z.name}</td>
                     {z.values.map((v, k) => (
-                      <td key={k} className="tbl-cell" style={{ textAlign: 'right', color: k < 8 ? shade(v, k < 3) : 'var(--muted)' }}>{v}</td>
+                      <td key={k} className="tbl-cell" style={{ textAlign: 'center', background: hzBg(v), color: 'var(--text)' }}>{v}</td>
                     ))}
                   </tr>
                 ))}
