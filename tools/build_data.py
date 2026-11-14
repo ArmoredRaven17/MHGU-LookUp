@@ -406,6 +406,9 @@ def icons():
     s = gmd('itemData_eng.gmd')
     with tempfile.TemporaryDirectory() as tmp:
         build_icons.build(os.path.join(OUT, '..'), tmp, [s[2 * i] for i in range(len(s) // 2)])
+        with open(os.path.join(OUT, 'monsters.json'), encoding='utf8') as f:
+            ids = [m['id'] for m in json.load(f)['monsters']]
+        build_icons.monster_icons(os.path.join(OUT, '..'), tmp, ids)
 
 
 # ── Items ───────────────────────────────────────────────────────────────────────────────────

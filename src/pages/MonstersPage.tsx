@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { loadMonsters } from '../data/loaders'
 import type { Monster } from '../types'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
+import { useMonsterIcons } from '../data/icons'
 import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
 import { useTextScale } from '../theme/textScale'
@@ -25,13 +26,14 @@ export default function MonstersPage() {
   // Listed under their class, in the classes' order; a monster opened by link shows its own size's list.
   const mon = data.monsters.find(m => m.id === id)
   useEffect(() => { if (mon) setSize(mon.small ? 'small' : 'large') }, [mon])
+  const icon = useMonsterIcons()
   const entries = useMemo(() => {
     const rank = (c: string) => { const i = (data.classes ?? []).indexOf(c); return i < 0 ? 99 : i }
     return data.monsters
       .filter(m => (size === 'small') === m.small)
       .sort((a, b) => rank(a.class) - rank(b.class) || a.name.localeCompare(b.name))
-      .map(m => ({ key: m.id, label: m.name, group: m.class || 'Unclassified', search: m.class }))
-  }, [data, size])
+      .map(m => ({ key: m.id, label: m.name, group: m.class || 'Unclassified', search: m.class, icon: icon(m.id) }))
+  }, [data, size, icon])
 
   return (
     <ListPage entries={entries} base="/monsters" selected={id} placeholder="Search monsters…"
@@ -43,6 +45,7 @@ export default function MonstersPage() {
 
 function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
   const scale = useTextScale()
+  const icon = useMonsterIcons()
   const path = `/monsters/${m.id}`
   // Colour a hit-zone value: the higher, the more it takes.
   const shade = (v: number, physical: boolean) => {
@@ -51,7 +54,7 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
   }
   return (
     <div style={{ maxWidth: 900 }}>
-      <DetailHeader title={m.name} sub={[m.class, m.small ? 'Small monster' : 'Large monster'].filter(Boolean).join(' · ')}>
+      <DetailHeader title={m.name} icon={icon(m.id)} sub={[m.class, m.small ? 'Small monster' : 'Large monster'].filter(Boolean).join(' · ')}>
         <BookmarkButton bookmark={{ type: 'monster', id: m.id, name: m.name, path }} />
       </DetailHeader>
 

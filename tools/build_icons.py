@@ -10,6 +10,13 @@
   start-up by the initialiser 0x560bd4, recovered by running the static initialisers in the shared emulator
   C:/MHGU-Extract/build/arm/emu.py). Each entry is 0xAABBGGRR. The icon is drawn as the shape tinted by it
   (texel x colour).
+
+Monster icons -> public/icons/monster/<Monster Viewer id>.png and public/data/monster-icons.json:
+- A monster's key is its em number + (variant << 8), small monsters + 0x1000 (the [u32 key, u32 number] table at
+  rodata 0x1594ca4, read by 0x50aa8). Its icon cell is the u32 table at rodata 0x1627f98 indexed by that number
+  (0x55f818: table[0x50aa8(key)]); the Fatalis numbers (117..119) point at cell 41, the '?' icon.
+- Cells 0..97 are on eng/GUI/99_texture/HD_cmn_micon00_BM_MQ_NOMIP (512 x 1024), 98.. on HD_cmn_micon01 (512 x
+  512), seven 72-pixel cells to a row (measured on the sheets' empty gutters); both are BC-compressed .tex the shared converter reads.
 """
 import json, os, struct, sys
 
@@ -73,3 +80,39 @@ def build(out_root, tmp, names):
     with open(os.path.join(out_root, 'data', 'item-icons.json'), 'w', encoding='utf8') as f:
         json.dump({'byId': keys, 'byName': by_name}, f, ensure_ascii=False, separators=(',', ':'))
     print('  item icons', sum(made.values()), 'images for', len(keys), 'items')
+
+
+def monster_icons(out_root, tmp, monster_ids):
+    """monster_ids: the Monsters tab's ids (em001_00, ems001_00); each found in the ROM's table gets an icon."""
+    import re
+    import mh
+    import buildlib as B
+    from PIL import Image
+    bs = chr(92)
+    ro = open('C:/MHGU-ROM/exefs/main.rodata', 'rb').read()
+    num = {k: s for k, s in (struct.unpack_from('<II', ro, 0x1594ca4 - 0x13EF000 + 8 * i) for i in range(0x89))}
+    cell = lambda n: struct.unpack_from('<I', ro, 0x1627f98 - 0x13EF000 + 4 * n)[0]
+    d, ents = mh.arc_entries(ROM + 'eng/arc/resident_eng.arc')
+    sheets = []
+    for short in ('HD_cmn_micon00_BM_MQ_NOMIP', 'HD_cmn_micon01_BM_MQ_NOMIP'):
+        e = [x for x in ents if x[0] == bs.join(['eng', 'GUI', '99_texture', short])][0]
+        path = os.path.join(tmp, short + '.tex')
+        open(path, 'wb').write(mh.arc_extract(d, e))
+        sheets.append(Image.open(B.tex_to_dds(path)).convert('RGBA'))
+    folder = os.path.join(out_root, 'icons', 'monster')
+    os.makedirs(folder, exist_ok=True)
+    pitch = 72                                       # 72-pixel cells (transparent 2-pixel rims), from 0
+    out = {}
+    for mid in monster_ids:
+        g = re.match(r'em(s?)(\d+)_(\d+)$', mid)
+        key = int(g[2]) + (int(g[3]) << 8) + (0x1000 if g[1] else 0)
+        if key not in num:
+            continue
+        c = cell(num[key])
+        sheet, c = (sheets[0], c) if c < 98 else (sheets[1], c - 98)
+        x, y = (c % 7) * pitch, (c // 7) * pitch
+        sheet.crop((x, y, x + 72, y + 72)).save(os.path.join(folder, mid + '.png'), optimize=True)
+        out[mid] = mid
+    with open(os.path.join(out_root, 'data', 'monster-icons.json'), 'w', encoding='utf8') as f:
+        json.dump(out, f, separators=(',', ':'))
+    print('  monster icons', len(out), 'of', len(monster_ids))
