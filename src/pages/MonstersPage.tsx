@@ -105,10 +105,10 @@ const EXTRACT_RGB: Record<string, [number, number, number]> = {
 }
 function ExtractCell({ extract }: { extract: string }) {
   const c = EXTRACT_RGB[extract]
-  if (!c) return <td className="tbl-cell">{extract || '—'}</td>
+  if (!c) return <td className="tbl-cell" style={{ textAlign: 'center' }}>{extract || '—'}</td>
   const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
   return (
-    <td className="tbl-cell" style={{ textTransform: 'capitalize', fontWeight: 600,
+    <td className="tbl-cell" style={{ textAlign: 'center', textTransform: 'capitalize', fontWeight: 600,
       background: `rgb(${c.map(x => Math.round(x * 255)).join(',')})`, color: lum > 0.45 ? '#101216' : '#f2f4f8' }}>
       {extract}
     </td>
