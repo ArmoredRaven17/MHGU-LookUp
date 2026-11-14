@@ -8,10 +8,12 @@ Everything is read from the viewer's own files on each build; nothing is named h
   render/monster.js    ROM_MEAT_SWITCH: which table-1 row each slot takes in which state (read from the ROM by the viewer),
                        ROM_FORM_CLIPS (Alatreon's Form), ROM_HEAT_REGIONS (Agnaktor)
   render/motion-states.js  CLASS_CONTROLS (Chameleos's Invisible, Raging Brachydios's Red Slime)
-The page builds the table for the picked state with the viewer's rule (index.html zoneTable -> meatTableFor), so the
-rules ship as the viewer has them. Names follow the viewer's: a slot Raven has not named reads "Slot N", a part record
-"Part N", a state control the viewer's own label.
+One table per monster (Raven, 2026-11-14: "if we have something like Chest is X then when it breaks it becomes Y, we
+have Chest, Chest (Broken) as two rows"): each zone as the monster first appears, then each other row a state or a part
+puts on it, worked out with the viewer's own rule (meatTableFor). Names follow the viewer's: a slot Raven has not named
+reads "Slot N", a part record "Part N", a state or switch the viewer's own word.
 """
+import itertools
 import json
 import os
 import subprocess
@@ -41,6 +43,7 @@ class Source:
         st = _viewer_states()
         self.sw, self.forms, self.heat, self.ctl = st['meatSwitch'], st['formClips'], st['heatRegions'], st['classControls']
         self.warnings = []
+        self.unexplained = []      # monsters with a second block and no rules for it
 
     def warn(self, mid, msg):
         self.warnings.append(f'{mid}: {msg}')
@@ -96,7 +99,9 @@ def _states(src, mid, sw, tables):
             return None
         names = rv.get(cc['reviewNames']) if cc.get('reviewNames') else None
         opt = lambda v, own: str(names[str(v)]) if names and names.get(str(v)) is not None else own
-        return {'axis': 'ctl', 'names': [opt(v, own) for v, own in cc['options']], 'values': [v for v, _ in cc['options']]}
+        # `label`: an Off / On control's On is named by the control itself (Chameleos's Invisible)
+        return {'axis': 'ctl', 'names': [opt(v, own) for v, own in cc['options']], 'values': [v for v, _ in cc['options']],
+                'label': (names or {}).get('name') or cc['label']}
     if any('ladder' in r for r in rules):
         rage = rv.get('rage') or {}
         rungs = sorted(int(k) for k in rage if k.isdigit())
@@ -118,6 +123,97 @@ def _states(src, mid, sw, tables):
     return None
 
 
+def _table(tables, rules, st, on, heated):
+    """render/monster.js meatTableFor: table 0, each slot on the table-1 row of the first rule that holds."""
+    rows, done, t1 = list(tables[0]), set(), tables[1]
+    keys = lambda x: [x] if isinstance(x, str) else (x or [])
+    for r in rules:
+        if r['slot'] in done or r['row'] >= len(t1) or not t1[r['row']]:
+            continue
+        if 'rung' in r and st.get('rung', 0) not in r['rung']: continue
+        if 'ladder' in r and st.get('ladder', 0) not in r['ladder']: continue
+        if 'rage' in r and bool(r['rage']) != bool(st.get('rage')): continue
+        if 'mode' in r and st.get('mode', 0) not in r['mode']: continue
+        if 'ctl' in r and st.get('ctl', 0) not in r['ctl']: continue
+        if r.get('broken') and not all(k in on for k in keys(r['broken'])): continue
+        if r.get('intact') and any(k in on for k in keys(r['intact'])): continue
+        if r.get('heat') and not heated: continue
+        rows[r['slot']] = t1[r['row']]
+        done.add(r['slot'])
+    return rows
+
+
+def _state_of(st, i):
+    a = (st or {}).get('axis')
+    if a == 'mode': return {'mode': i}
+    if a == 'level': return {'rung': i, 'rage': bool(st['rage'][i]) if st.get('rage') else False}
+    if a == 'rage': return {'rage': i == 1}
+    if a in ('ctl', 'ladder'): return {a: st['values'][i]}
+    return {}
+
+
+def _switches(src, mid, sw):
+    """index.html zoneBreakParts: the Parts-panel states a rule tests, each with the viewer's name and heading."""
+    used = {k for r in sw['rules'] for k in ([r['broken']] if isinstance(r.get('broken'), str) else r.get('broken') or [])
+            + ([r['intact']] if isinstance(r.get('intact'), str) else r.get('intact') or [])}
+    out = []
+    for key in sw.get('broken') or {}:
+        if key in used:
+            name = _break_name(src, mid, sw, key)
+            if name:
+                out.append({'key': key, 'name': name, 'labelled': bool((sw.get('labels') or {}).get(key)),
+                            'section': (sw.get('sections') or {}).get(key) or ''})
+    return out
+
+
+def _switch_word(s, zone):
+    """A row's word for a switch: the entry's own label (Gravios Skull, Swollen, Horn Glow ...); a Mud / Snow / Ice /
+    Groomed switch its heading; a break of the zone itself "Broken", of another part "<part> Broken" (Kecha Wacha's
+    Belly break moves every zone)."""
+    if s['labelled']:
+        return s['name']
+    if s['section']:
+        return s['section']
+    return 'Broken' if s['name'] == zone else s['name'] + ' Broken'
+
+
+def _zone_rows(src, mid, h, sw, st, rows):
+    """One table: each zone's row as the monster first appears (the first state, nothing broken), then each other row a
+    state or a switch puts on that zone, named "<zone> (<what puts it there>)", with the viewer's states and switches.
+    A row the same as one already listed for the zone is not listed again; a row only a combination gives is named by
+    its smallest one, and by the states it holds in when it does not hold in all of them."""
+    tables = h['tables']
+    names = (st or {}).get('names') or ['']
+    sws = _switches(src, mid, sw)
+    keys = [s['key'] for s in sws] + (['HEAT'] if src.heat.get(mid) and any('heat' in r for r in sw['rules']) else [])
+    by_key = {s['key']: s for s in sws}
+    seen = {}                                   # (slot, row) -> [(state index, switch subset)], in the order met
+    for i in range(len(names)):
+        for n in range(len(keys) + 1):
+            for sub in itertools.combinations(keys, n):
+                t = _table(tables, sw['rules'], _state_of(st, i), set(sub), 'HEAT' in sub)
+                for z in rows:
+                    seen.setdefault((z['slot'], json.dumps(t[z['slot']], sort_keys=True)), []).append((i, sub))
+    base = _table(tables, sw['rules'], _state_of(st, 0), set(), False)
+    state_word = lambda i: st['label'] if st.get('axis') == 'ctl' and names[i] == 'On' else names[i]
+    out = []
+    for z in rows:
+        here = json.dumps(base[z['slot']], sort_keys=True)
+        out.append({'name': z['name'], 'row': base[z['slot']]})
+        for (slot, rj), conds in seen.items():
+            if slot != z['slot'] or rj == here:
+                continue
+            fewest = min(len(c[1]) for c in conds)
+            words = []
+            for sub in sorted({c[1] for c in conds if len(c[1]) == fewest}, key=lambda x: [keys.index(k) for k in x]):
+                states = sorted({c[0] for c in conds if c[1] == sub})
+                sw_word = ' + '.join('Heated' if k == 'HEAT' else _switch_word(by_key[k], z['name']) for k in sub)
+                st_word = '' if (sub and len(states) == len(names)) else ' / '.join(state_word(i) for i in states)
+                words.append(', '.join(w for w in (st_word, sw_word) if w))
+            out.append({'name': f"{z['name']} ({' / '.join(words)})", 'row': json.loads(rj)})
+    return out
+
+
 def build(src, mid):
     h = src.hz.get(mid)
     if not h:
@@ -125,43 +221,25 @@ def build(src, mid):
     zr = src.zrev.get(mid) if isinstance(src.zrev.get(mid), dict) else {}
     slot_names, hide = zr.get('slots') or {}, zr.get('hide') or {}
     sw = src.sw.get(mid)
-    tables = h['tables']
-    out = {
-        'rows': [{'slot': s, 'name': slot_names.get(str(s)) or f'Slot {s}'}
-                 for s in h.get('slotsDefined') or h.get('slotsUsed') or [] if str(s) not in hide],
-        'tables': tables,
-    }
-    # an attached body's own rows (Nakarkos's tentacles): its first table, listed after the body's (zoneChartRows)
+    rows = [{'slot': s, 'name': slot_names.get(str(s)) or f'Slot {s}'}
+            for s in h.get('slotsDefined') or h.get('slotsUsed') or [] if str(s) not in hide]
+    if sw and len(h['tables']) > 1:
+        zones = _zone_rows(src, mid, h, sw, _states(src, mid, sw, h['tables']), rows)
+    else:
+        # no rules: the viewer ties the second block to no state, so nothing says when its rows apply; table 0 only
+        if len(h['tables']) > 1:
+            src.unexplained.append(mid)
+        zones = [{'name': z['name'], 'row': h['tables'][0][z['slot']]} for z in rows]
+    # an attached body's own rows (Nakarkos's tentacles): its first table, after the body's (index.html zoneChartRows)
     att = next((a for a in (h.get('attached') or {}).values() if a.get('tables')), None)
     if att:
-        out['arm'] = {'rows': [{'slot': s, 'name': (att.get('names') or {}).get(str(s))
-                                or (ATTACHED_ZONE_NAMES[s] if s < len(ATTACHED_ZONE_NAMES) else f'Tentacle slot {s}')}
-                               for s in att.get('slotsDefined') or []],
-                      'table': att['tables'][0]}
-    st = _states(src, mid, sw, tables)
-    if st:
-        out['state'] = st
-    if sw and len(tables) > 1:
-        out['rules'] = sw['rules']
-        used = {k for r in sw['rules'] for k in ([r['broken']] if isinstance(r.get('broken'), str) else r.get('broken') or [])
-                + ([r['intact']] if isinstance(r.get('intact'), str) else r.get('intact') or [])}
-        switches = []
-        for key in sw.get('broken') or {}:
-            if key not in used:
-                continue
-            name = _break_name(src, mid, sw, key)
-            if name:
-                exact = key in (sw.get('exact') or [])
-                switches.append({'key': key, 'name': name,
-                                 'section': (sw.get('sections') or {}).get(key) or ('' if exact else 'Broken Parts')})
-        if switches:
-            out['switches'] = switches
-        hs = src.heat.get(mid)
-        if hs and any('heat' in r for r in sw['rules']):
-            out['heat'] = {'beam': hs.get('beam') or []}
+        for s in att.get('slotsDefined') or []:
+            name = (att.get('names') or {}).get(str(s)) or (
+                ATTACHED_ZONE_NAMES[s] if s < len(ATTACHED_ZONE_NAMES) else f'Tentacle slot {s}')
+            zones.append({'name': name, 'row': att['tables'][0][s]})
     # the .dtt part records the viewer's Parts table lists: those with a stagger or an extract colour (buildPartsChart)
     part_names = zr.get('parts') or {}
-    out['parts'] = [{'name': part_names.get(str(i)) or f'Part {i}', 'stagger': p['stagger'], 'break': p['break'],
-                     'extract': p['extract']}
-                    for i, p in enumerate(h.get('parts') or []) if p and (p.get('stagger') or p.get('extract'))]
-    return out
+    parts = [{'name': part_names.get(str(i)) or f'Part {i}', 'stagger': p['stagger'], 'break': p['break'],
+              'extract': p['extract']}
+             for i, p in enumerate(h.get('parts') or []) if p and (p.get('stagger') or p.get('extract'))]
+    return {'zones': zones, 'parts': parts}

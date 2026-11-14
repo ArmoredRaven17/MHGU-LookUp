@@ -324,6 +324,8 @@ def monsters():
     print('  monsters', len(out), 'with zones', sum(1 for e in out if 'hz' in e))
     for w in hzsrc.warnings:
         print('  hit zones:', w)
+    if hzsrc.unexplained:
+        print('  hit zones: a second block with no state for it, table 0 only:', ', '.join(hzsrc.unexplained))
     return {e['id']: e['name'] for e in out}
 
 

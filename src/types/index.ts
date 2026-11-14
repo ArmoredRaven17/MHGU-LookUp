@@ -149,21 +149,11 @@ export interface Monster {
   hz?: HitZones
 }
 
-// A monster's hit zones as the Monster Viewer's Hit Zones panel shows them (tools/build_hitzones.py).
+// A monster's hit zones, one table (tools/build_hitzones.py): each zone, then the rows a state or a part puts on it
+// ("Chest", "Chest (Broken)"), named with the Monster Viewer's words.
 export type ZoneRow = Record<string, number>          // one damage-table row, keyed by zone type
-export interface ZoneRule {                           // render/monster.js ROM_MEAT_SWITCH: slot takes table-1 row `row` when it holds
-  slot: number; row: number
-  rung?: number[]; ladder?: number[]; mode?: number[]; ctl?: number[]; rage?: boolean
-  broken?: string | string[]; intact?: string | string[]; heat?: string
-}
 export interface HitZones {
-  rows: { slot: number; name: string }[]              // the chart's rows, in slot order
-  tables: ZoneRow[][]                                 // the .dtt: table 0 per slot, then the second block (a pool of rows)
-  arm?: { rows: { slot: number; name: string }[]; table: ZoneRow[] }
-  state?: { axis: 'table' | 'mode' | 'level' | 'rage' | 'ctl' | 'ladder'; names: string[]; values?: number[]; rage?: boolean[] | null }
-  rules?: ZoneRule[]
-  switches?: { key: string; name: string; section: string }[]
-  heat?: { beam: string[] }
+  zones: { name: string; row: ZoneRow }[]
   parts: { name: string; stagger: number; break: number | null; extract: string }[]
 }
 
