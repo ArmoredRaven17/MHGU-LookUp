@@ -409,6 +409,7 @@ def icons():
         with open(os.path.join(OUT, 'monsters.json'), encoding='utf8') as f:
             ids = [m['id'] for m in json.load(f)['monsters']]
         build_icons.monster_icons(os.path.join(OUT, '..'), tmp, ids)
+        build_icons.equipment_icons(os.path.join(OUT, '..'), tmp)
 
 
 # ── Items ───────────────────────────────────────────────────────────────────────────────────

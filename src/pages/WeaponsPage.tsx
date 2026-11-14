@@ -7,6 +7,7 @@ import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
 import GameText from '../components/GameText'
 import { SharpnessBar, Materials, SlotsText } from '../components/Equipment'
+import { useEquipIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
 
 // Route: /weapons/<class id>/<row>, e.g. /weapons/w10/65.
@@ -21,10 +22,11 @@ export default function WeaponsPage() {
 
   const current = data?.id === clsId ? data : null
   const byRow = useMemo(() => new Map((current?.weapons ?? []).map(w => [w.row, w])), [current])
+  const equip = useEquipIcons()
   const entries = useMemo(() => (current?.weapons ?? []).map(w => ({
     key: String(w.row), label: w.name, sub: `Rarity ${w.rarity}`, indent: w.depth,
-    search: w.forms.map(f => f.name).join(' '),
-  })), [current])
+    search: w.forms.map(f => f.name).join(' '), icon: equip.weapon(current!.id, w.rarity),
+  })), [current, equip])
   const weapon = current?.weapons.find(w => String(w.row) === row)
 
   return (
@@ -47,6 +49,7 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
   const top = w.levels[w.levels.length - 1].lv
   const [lv, setLv] = useState(top)
   const level = w.levels.find(l => l.lv === lv) ?? w.levels[w.levels.length - 1]
+  const equip = useEquipIcons()
   const path = `/weapons/${cls.id}/${w.row}`
   const formAt = (n: number) => [...w.forms].reverse().find(f => f.from <= n) ?? w.forms[0]
   const from = w.from && byRow.get(w.from.row)
@@ -54,7 +57,7 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
 
   return (
     <div style={{ maxWidth: 820 }}>
-      <DetailHeader title={formAt(lv).name} sub={`${cls.name} · Rarity ${w.rarity}${w.forms.length > 1 ? ` · ${w.name} line` : ''}`}>
+      <DetailHeader title={formAt(lv).name} icon={equip.weapon(cls.id, w.rarity)} sub={`${cls.name} · Rarity ${w.rarity}${w.forms.length > 1 ? ` · ${w.name} line` : ''}`}>
         <BookmarkButton bookmark={{ type: 'weapon', id: `${cls.id}/${w.row}`, name: w.name, path }} />
       </DetailHeader>
 

@@ -54,7 +54,7 @@ export const loadItems       = () => load<Item[]>('items.json')
 export interface PalicoAttack { attack: number; affinity: number; element: number }
 export interface PalicoWeapon {
   id: number; name: string; desc: string; rarity: number
-  atkType: string; style: string; spType: number; sharpness: number; melee: PalicoAttack; ranged: PalicoAttack
+  atkType: string; atkTree: number; style: string; spType: number; sharpness: number; melee: PalicoAttack; ranged: PalicoAttack
   elementType: string | null; defense: number; materials: [string, number][]
 }
 export interface PalicoArmor { id: number; name: string; desc: string; rarity: number; defense: number; res: number[]; materials: [string, number][] }

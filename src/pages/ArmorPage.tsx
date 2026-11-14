@@ -7,6 +7,7 @@ import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
 import GameText from '../components/GameText'
 import { Materials, SlotsText } from '../components/Equipment'
+import { useEquipIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
 
 const RES = ['Fire', 'Water', 'Thunder', 'Ice', 'Dragon']
@@ -22,13 +23,14 @@ export default function ArmorPage() {
   const [cls, setCls] = useState('all')
   useEffect(() => { loadArmor().then(setSets) }, [])
 
+  const equip = useEquipIcons()
   const entries = useMemo(() => sets
     .filter(s => cls === 'all' || s.class === cls || s.class === 'Both')
     .map(s => ({
-      key: String(s.id), label: s.name,
+      key: String(s.id), label: s.name, icon: equip.armor('Chest', s.rarity),
       sub: `Rarity ${s.rarity} · ${s.class === 'Both' ? 'Both' : s.class}${s.gender !== 'Both' ? ` · ${s.gender}` : ''}`,
       search: s.pieces.map(p => p.name + ' ' + p.skills.map(k => k[0]).join(' ')).join(' '),
-    })), [sets, cls])
+    })), [sets, cls, equip])
   const set = sets.find(s => String(s.id) === id)
 
   return (
@@ -50,9 +52,10 @@ function ArmorDetail({ s }: { s: ArmorSet }) {
     return [...m.entries()].sort((a, b) => b[1] - a[1])
   }, [s])
 
+  const equip = useEquipIcons()
   return (
     <div style={{ maxWidth: 860 }}>
-      <DetailHeader title={s.name}
+      <DetailHeader title={s.name} icon={equip.armor('Chest', s.rarity)}
                     sub={`Rarity ${s.rarity} · ${s.class === 'Both' ? 'Blademaster and Gunner' : s.class}${s.gender !== 'Both' ? ` · ${s.gender} only` : ''}`}>
         <BookmarkButton bookmark={{ type: 'armor', id: String(s.id), name: s.name, path }} />
       </DetailHeader>
@@ -81,7 +84,12 @@ function ArmorDetail({ s }: { s: ArmorSet }) {
             <tbody>
               {s.pieces.map(p => (
                 <tr key={p.slot} className="tbl-row">
-                  <td className="tbl-cell text-muted">{p.slot}</td>
+                  <td className="tbl-cell text-muted" style={{ whiteSpace: 'nowrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      {equip.armor(p.slot, s.rarity) && <img src={equip.armor(p.slot, s.rarity)} alt="" width={20 * scale} height={20 * scale} style={{ imageRendering: 'pixelated' }} />}
+                      {p.slot}
+                    </span>
+                  </td>
                   <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }} title={p.desc.replace(/\n/g, ' ')}>{p.name}</td>
                   <td className="tbl-cell"><SlotsText n={p.slots} /></td>
                   <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>

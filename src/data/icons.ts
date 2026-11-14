@@ -31,3 +31,25 @@ export function useItemIcons(): ItemIcons {
     byName: (name: string) => url(map?.byName[name]),
   }), [map])
 }
+
+// Equipment icons read from the game (tools/build_icons.py): the shape by equipment kind, the colour by rarity.
+interface EquipMap { armor: Record<string, number>; weapon: Record<string, number>; palico: Record<string, number> }
+let equipCache: Promise<EquipMap> | null = null
+export interface EquipIcons {
+  weapon: (cls: string, rarity: number) => string | undefined          // cls: w00 .. w14
+  armor: (slot: string, rarity: number) => string | undefined          // slot: Head, Chest, Arms, Waist, Legs
+  palico: (kind: 'cutting' | 'blunt' | 'head' | 'body', rarity: number) => string | undefined
+}
+export function useEquipIcons(): EquipIcons {
+  const [map, setMap] = useState<EquipMap | null>(null)
+  useEffect(() => { (equipCache ??= fetch(`${BASE}/data/equip-icons.json`).then(r => r.json())).then(setMap) }, [])
+  return useMemo(() => {
+    const at = (cell: number | undefined, rarity: number) =>
+      cell != null && rarity >= 1 && rarity <= 11 ? `${BASE}/icons/equip/${cell}-${rarity}.png` : undefined
+    return {
+      weapon: (cls, r) => at(map?.weapon[cls], r),
+      armor: (slot, r) => at(map?.armor[slot], r),
+      palico: (kind, r) => at(map?.palico[kind], r),
+    }
+  }, [map])
+}

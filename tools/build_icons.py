@@ -17,6 +17,14 @@ Monster icons -> public/icons/monster/<Monster Viewer id>.png and public/data/mo
   (0x55f818: table[0x50aa8(key)]); the Fatalis numbers (117..119) point at cell 41, the '?' icon.
 - Cells 0..97 are on eng/GUI/99_texture/HD_cmn_micon00_BM_MQ_NOMIP (512 x 1024), 98.. on HD_cmn_micon01 (512 x
   512), seven 72-pixel cells to a row (measured on the sheets' empty gutters); both are BC-compressed .tex the shared converter reads.
+
+Equipment icons -> public/icons/equip/<cell>-<rarity>.png and public/data/equip-icons.json:
+- Shape: the item sheet's cell from the u8 table at rodata 0x1627f7c indexed by the equipment kind (an equipment
+  record's u16 +4 & 0x1f; 0x55f7d0): 1..5 head, chest, arms, waist, legs; 6 talisman; 7..21 the weapon classes
+  w00..w14; 23 / 24 Palico head / body. A Palico weapon (kind 0x16) is 76 when its mAttackTree is 0 (Cutting),
+  77 when 1 (Blunt) (0x55f7e4, called from 0x56d72c with the class's vt+0x124).
+- Colour: the rarity table the initialiser 0x560bd4 builds at .data 0x18380e4, indexed by the piece's rarity - 1
+  (0x55fa64; cOtWeaponBase's vt+0x1c returns its mRare), RARE 1..11.
 """
 import json, os, struct, sys
 
@@ -38,13 +46,27 @@ def sheet(tmp):
     return B._tex_rgba8_blocklinear(path)
 
 
-def palette(n):
+_EMU = []
+
+
+def palette(n, ptr=0x18380d8):
+    """n colours of the table the start-up initialisers build at the pointer `ptr` (run once, then reused)."""
     import emu
-    e = emu.Emu()
-    for f in emu.init_array():
-        e.call(f)
-    p = e.u32(0x18380d8)
+    if not _EMU:
+        e = emu.Emu()
+        for f in emu.init_array():
+            e.call(f)
+        _EMU.append(e)
+    e = _EMU[0]
+    p = e.u32(ptr)
     return [e.u32(p + 4 * i) for i in range(n)]
+
+
+def tint(cell, v):
+    from PIL import Image
+    t = (v & 255, (v >> 8) & 255, (v >> 16) & 255)
+    r, g, b, a = cell.split()
+    return Image.merge('RGBA', [ch.point(lambda p, k=k: p * k // 255) for ch, k in zip((r, g, b), t)] + [a])
 
 
 def build(out_root, tmp, names):
@@ -66,11 +88,7 @@ def build(out_root, tmp, names):
             if not cell.split()[3].getbbox():
                 made[key] = False                      # an empty cell: no icon
                 continue
-            v = pal[c]
-            tint = (v & 255, (v >> 8) & 255, (v >> 16) & 255)
-            r, g, b, a = cell.split()
-            out = Image.merge('RGBA', [ch.point(lambda p, k=k: p * k // 255) for ch, k in zip((r, g, b), tint)] + [a])
-            out.save(os.path.join(folder, key + '.png'), optimize=True)
+            tint(cell, pal[c]).save(os.path.join(folder, key + '.png'), optimize=True)
             made[key] = True
         if made[key]:
             keys[i] = key
@@ -116,3 +134,27 @@ def monster_icons(out_root, tmp, monster_ids):
     with open(os.path.join(out_root, 'data', 'monster-icons.json'), 'w', encoding='utf8') as f:
         json.dump(out, f, separators=(',', ':'))
     print('  monster icons', len(out), 'of', len(monster_ids))
+
+
+def equipment_icons(out_root, tmp):
+    """Every equipment shape x the eleven rarity colours, and the kind -> cell map the pages use."""
+    ro = open('C:/MHGU-ROM/exefs/main.rodata', 'rb').read()
+    table = list(ro[0x1627f7c - 0x13EF000: 0x1627f7c - 0x13EF000 + 25])
+    rarity = palette(11, 0x18380e4)
+    im = sheet(tmp)
+    folder = os.path.join(out_root, 'icons', 'equip')
+    os.makedirs(folder, exist_ok=True)
+    cells = sorted(set(table[1:]) - {table[0]} | {76, 77})
+    for c in cells:
+        x, y = (c % PER_ROW) * CELL, TOP + (c // PER_ROW) * CELL
+        cell = im.crop((x, y, x + CELL, y + CELL))
+        for r in range(11):
+            tint(cell, rarity[r]).save(os.path.join(folder, '%d-%d.png' % (c, r + 1)), optimize=True)
+    out = {
+        'armor': dict(zip(['Head', 'Chest', 'Arms', 'Waist', 'Legs'], table[1:6])),
+        'weapon': {'w%02d' % k: table[7 + k] for k in range(15)},
+        'palico': {'cutting': 76, 'blunt': 77, 'head': table[23], 'body': table[24]},
+    }
+    with open(os.path.join(out_root, 'data', 'equip-icons.json'), 'w', encoding='utf8') as f:
+        json.dump(out, f, separators=(',', ':'))
+    print('  equipment icons', len(cells), 'shapes x 11 rarities')

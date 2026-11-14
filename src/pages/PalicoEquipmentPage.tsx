@@ -4,6 +4,7 @@ import { loadPalico, type Palico, type PalicoArmor, type PalicoAttack, type Pali
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import GameText from '../components/GameText'
 import { Materials, SHARP_COLOURS, SHARP_NAMES } from '../components/Equipment'
+import { useEquipIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
 
 // Route: /palicogear/w<row> (a weapon), /palicogear/h<row> (head armor), /palicogear/b<row> (body armor).
@@ -35,6 +36,8 @@ export default function PalicoEquipmentPage() {
   useEffect(() => { loadPalico().then(setData) }, [])
   useEffect(() => { if (id) setView(viewOf(id)) }, [id])
 
+  const equip = useEquipIcons()
+  const wIcon = (w: PalicoWeapon) => equip.palico(w.atkTree ? 'blunt' : 'cutting', w.rarity)
   const views = data ? [
     { value: 'weapons', label: data.labels.weapon },
     { value: 'head', label: data.labels.head },
@@ -44,16 +47,17 @@ export default function PalicoEquipmentPage() {
   const entries = useMemo(() => {
     if (!data) return []
     if (view === 'weapons') {
-      return data.weapons.map(w => ({ key: `w${w.id}`, label: w.name, group: rare(data, w.rarity),
+      return data.weapons.map(w => ({ key: `w${w.id}`, label: w.name, group: rare(data, w.rarity), icon: wIcon(w),
         sub: `${w.atkType} · ${plain(w.style)}`, search: w.materials.map(m => m[0]).join(' '), r: w.rarity }))
         .sort((x, y) => x.r - y.r)
     }
     const list = view === 'head' ? data.head : data.body
     const prefix = view === 'head' ? 'h' : 'b'
     return list.map(a => ({ key: `${prefix}${a.id}`, label: a.name, group: rare(data, a.rarity),
+      icon: equip.palico(view === 'head' ? 'head' : 'body', a.rarity),
       sub: `${data.labels.defense} ${a.defense}`, search: a.materials.map(m => m[0]).join(' '), r: a.rarity }))
       .sort((x, y) => x.r - y.r)
-  }, [data, view])
+  }, [data, view, equip])
 
   let detail = null
   if (data && id) {
@@ -91,10 +95,11 @@ function AttackRows({ data, title, a, element }: { data: Palico; title: string; 
 
 function WeaponDetail({ data, w }: { data: Palico; w: PalicoWeapon }) {
   const scale = useTextScale()
+  const equip = useEquipIcons()
   const L = data.labels
   return (
     <div style={{ maxWidth: 720 }}>
-      <DetailHeader title={w.name} sub={rare(data, w.rarity)} />
+      <DetailHeader title={w.name} sub={rare(data, w.rarity)} icon={equip.palico(w.atkTree ? 'blunt' : 'cutting', w.rarity)} />
       <GameText text={w.desc} style={{ margin: '0 0 10px', color: 'var(--muted)', fontStyle: 'italic', fontSize: 13 * scale }} />
       <Section title={L.equipment}>
         <table style={{ borderCollapse: 'collapse', fontSize: 13 * scale }}><tbody>
@@ -114,10 +119,11 @@ function WeaponDetail({ data, w }: { data: Palico; w: PalicoWeapon }) {
 
 function ArmorDetail({ data, a, part }: { data: Palico; a: PalicoArmor; part: string }) {
   const scale = useTextScale()
+  const equip = useEquipIcons()
   const L = data.labels
   return (
     <div style={{ maxWidth: 720 }}>
-      <DetailHeader title={a.name} sub={`${part} · ${rare(data, a.rarity)}`} />
+      <DetailHeader title={a.name} sub={`${part} · ${rare(data, a.rarity)}`} icon={equip.palico(part === data.labels.head ? 'head' : 'body', a.rarity)} />
       <GameText text={a.desc} style={{ margin: '0 0 10px', color: 'var(--muted)', fontStyle: 'italic', fontSize: 13 * scale }} />
       <Section title={L.equipment}>
         <table style={{ borderCollapse: 'collapse', fontSize: 13 * scale }}><tbody>

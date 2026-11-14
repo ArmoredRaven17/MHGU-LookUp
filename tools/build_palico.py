@@ -90,7 +90,7 @@ def build(gmd, gmd_path, write):
         c = wcreate.get(i)
         weapons.append({
             'id': i, 'name': name, 'desc': W[2 * i + 1], 'rarity': r[22] + 1,
-            'atkType': start[497 + r[6]], 'style': start[u32(0x16298a0 + 4 * r[9])], 'spType': r[9],
+            'atkType': start[497 + r[6]], 'style': start[u32(0x16298a0 + 4 * r[9])], 'spType': r[9], 'atkTree': r[6],
             'sharpness': r[7],
             'melee': {'attack': struct.unpack_from('<H', r, 10)[0], 'affinity': struct.unpack_from('<b', r, 12)[0],
                       'element': struct.unpack_from('<h', r, 13)[0]},
