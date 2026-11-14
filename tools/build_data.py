@@ -25,10 +25,11 @@ Sources, per file:
                 u16 recipe number, four [u16 item, qty]); names and texts from itemData_eng.gmd. All 242
                 jewels and their 275 recipes match mhgu.db; the 9 rows the ROM names DUMMY are left out.
 - monsters.json the MHGU Monster Viewer's ROM-read files (C:/MHGU-Extract/MHGU-Monster-Viewer/docs, each
-                carrying its own source notes): hit-zone tables and part records (stagger, break, extract
-                colour) from each monster's .dtt, capsules from the .bdd (which part record each zone row
-                hits), quest levels from the quest files, class names from monsterName_eng. NOT from the
-                ROM: the part names (community; the ROM has no part-name table), the monster -> class
+                carrying its own source notes): hit zones as its Hit Zones panel shows them (see
+                tools/build_hitzones.py: the .dtt tables and part records, the state rules the viewer read from
+                the ROM, Raven's slot and part names from its zone-review.json / part-review.json), quest levels
+                from the quest files, class names from monsterName_eng. NOT from the ROM: the slot, part and
+                state names (the ROM has no part-name table), the monster -> class
                 assignment (authored there, checked against the Quest Randomizer) and the id -> name join
                 (mhgu.db; every name is the game's own text somewhere -- the Hub list, items, titles).
 - quests.json   the quest files and their text: see tools/build_quests.py.
@@ -301,8 +302,10 @@ ZONE_TYPES = ['cut', 'impact', 'shot', 'fire', 'water', 'ice', 'thunder', 'drago
 
 
 def monsters():
+    import build_hitzones
     load = lambda f: json.load(open(MV + f, encoding='utf8'))
-    mons, hz = load('monsters.json')['monsters'], load('hitzones.json')['monsters']
+    mons = load('monsters.json')['monsters']
+    hzsrc = build_hitzones.Source()
     classes, levels = load('monster-classes.json')['classes'], load('quest-levels.json')
     level_names = levels['levelNames']
     out = []
@@ -312,24 +315,15 @@ def monsters():
         e = {'id': m['id'], 'name': m['name'], 'small': m['small'], 'class': classes.get(m['id'], '')}
         lv = levels['monsters'].get(m['id'], {})
         e['quests'] = [[level_names[k], n] for k, n in sorted(lv.items(), key=lambda x: int(x[0]))]
-        h = hz.get(m['id'])
-        if h:
-            names = h.get('names', {})
-            zone_name = lambda slot: names.get(str(slot)) or f'Zone {slot + 1}'
-            e['zones'] = [[{'name': zone_name(slot), 'values': [t[slot][k] for k in ZONE_TYPES]}
-                           for slot in h['slotsDefined']] for t in h['tables']]
-            hits = {}                                   # part record -> the zone rows whose capsules use it
-            for c in h['capsules']:
-                hits.setdefault(c[1], [])
-                if zone_name(c[0]) not in hits[c[1]]:
-                    hits[c[1]].append(zone_name(c[0]))
-            # A part record has no name in the ROM: list it by number with the zones that point at it.
-            e['parts'] = [{'n': i + 1, 'zones': hits.get(i, []), **h['parts'][i]}
-                          for i in h['partsUsed'] if i < len(h['parts'])]
+        z = build_hitzones.build(hzsrc, m['id'])
+        if z:
+            e['hz'] = z
         out.append(e)
     order = [c for c in load('monster-classes.json')['_about']['order'] if any(e['class'] == c for e in out)]
     write('monsters.json', {'zoneTypes': ZONE_TYPES, 'classes': order, 'monsters': out})
-    print('  monsters', len(out), 'with zones', sum(1 for e in out if 'zones' in e))
+    print('  monsters', len(out), 'with zones', sum(1 for e in out if 'hz' in e))
+    for w in hzsrc.warnings:
+        print('  hit zones:', w)
     return {e['id']: e['name'] for e in out}
 
 

@@ -146,8 +146,25 @@ export interface Monster {
   small: boolean
   class: string
   quests: [string, number][]        // [rank, how many quests have it at that rank]
-  zones?: { name: string; values: number[] }[][]   // one or two hit-zone tables
-  parts?: { n: number; zones: string[]; stagger: number; break: number | null; extract: string }[]
+  hz?: HitZones
+}
+
+// A monster's hit zones as the Monster Viewer's Hit Zones panel shows them (tools/build_hitzones.py).
+export type ZoneRow = Record<string, number>          // one damage-table row, keyed by zone type
+export interface ZoneRule {                           // render/monster.js ROM_MEAT_SWITCH: slot takes table-1 row `row` when it holds
+  slot: number; row: number
+  rung?: number[]; ladder?: number[]; mode?: number[]; ctl?: number[]; rage?: boolean
+  broken?: string | string[]; intact?: string | string[]; heat?: string
+}
+export interface HitZones {
+  rows: { slot: number; name: string }[]              // the chart's rows, in slot order
+  tables: ZoneRow[][]                                 // the .dtt: table 0 per slot, then the second block (a pool of rows)
+  arm?: { rows: { slot: number; name: string }[]; table: ZoneRow[] }
+  state?: { axis: 'table' | 'mode' | 'level' | 'rage' | 'ctl' | 'ladder'; names: string[]; values?: number[]; rage?: boolean[] | null }
+  rules?: ZoneRule[]
+  switches?: { key: string; name: string; section: string }[]
+  heat?: { beam: string[] }
+  parts: { name: string; stagger: number; break: number | null; extract: string }[]
 }
 
 export interface Quest {
