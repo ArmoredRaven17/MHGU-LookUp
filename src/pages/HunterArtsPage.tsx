@@ -16,6 +16,11 @@ const baseName = (n: string) => n.replace(/ (I|II|III)$/, '')
 // Lance, GL, SA, CB, IG, LBG, HBG, Bow. The generic Arts come first.
 const GUILD_CARD = ['w00', 'w07', 'w01', 'w11', 'w02', 'w12', 'w03', 'w09', 'w08', 'w14', 'w13', 'w06', 'w04', 'w10']
 const rank = (w: string | null) => w == null ? -1 : GUILD_CARD.indexOf(w)
+// Each weapon's colour on the Guild Card, as the MHGU Save Editor shows it (mhgu-editor PlayerTab.tsx WEAPON_DISPLAY).
+const CARD_COLOR: Record<string, string> = {
+  w00: '#ff505b', w07: '#9beaf1', w01: '#dfd65f', w11: '#6ac083', w02: '#c3a3d2', w12: '#f89a64', w03: '#9fbcff',
+  w09: '#f4baf5', w08: '#aaaaaa', w14: '#fc5800', w13: '#f5f5f5', w06: '#acd56b', w04: '#f8899c', w10: '#55edc4',
+}
 
 export default function HunterArtsPage() {
   const { id } = useParams()
@@ -31,7 +36,8 @@ export default function HunterArtsPage() {
   }, [arts])
   // Generic Arts first, then by weapon in the Guild Card's order, each weapon's Arts in the game's own order
   const entries = useMemo(() => [...groups].sort((a, b) => rank(a.weapon) - rank(b.weapon) || a.category - b.category)
-    .map(g => ({ key: g.key, label: g.name, group: g.weapon ? classes[g.weapon] ?? g.weapon : 'Generic' })), [groups, classes])
+    .map(g => ({ key: g.key, label: g.name, group: g.weapon ? classes[g.weapon] ?? g.weapon : 'Generic',
+                 groupColor: g.weapon ? CARD_COLOR[g.weapon] : undefined })), [groups, classes])
   const group = groups.find(g => g.key === id)
   const path = `/arts/${id}`
 

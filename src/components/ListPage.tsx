@@ -15,6 +15,7 @@ export interface ListEntry {
                        // the entries must then come in tree order (each child after its parent, one level deeper)
   group?: string       // a heading the entry is listed under (entries come already ordered by group)
   icon?: string        // an icon shown before the label (the game's own, see src/data/icons.ts)
+  groupColor?: string  // the colour of this entry's group heading (default: the accent colour)
 }
 
 // The list + detail shell every lookup tab shares (from the MHFU LookUp): a resizable,
@@ -83,6 +84,7 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
                 <div style={{
                   padding: '8px 12px 3px', fontSize: 11 * scale, fontWeight: 700, color: 'var(--accent)',
                   textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)',
+                  ...(e.groupColor ? { color: e.groupColor } : {}),
                 }}>{e.group}</div>
               )}
               <button onClick={() => navigate(`${base}/${e.key}`)} style={{
