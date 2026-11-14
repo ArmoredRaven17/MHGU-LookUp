@@ -83,7 +83,7 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
                   <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>{p.name}</td>
                   <td className="tbl-cell">{p.stagger}</td>
                   <td className="tbl-cell">{p.break ?? '—'}</td>
-                  <td className="tbl-cell" style={{ textTransform: 'capitalize' }}>{p.extract}</td>
+                  <ExtractCell extract={p.extract} />
                 </tr>
               ))}
             </tbody>
@@ -95,6 +95,23 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
         <NotesBox target={{ type: 'monster', id: m.id, name: m.name, category: m.class || 'Monster', path }} />
       </Section>
     </div>
+  )
+}
+
+// The four kinsect extract colours, as the Monster Viewer paints them (render/monster.js EXTRACT_RGB), with dark or
+// light text by the colour's luminance as its Parts table does.
+const EXTRACT_RGB: Record<string, [number, number, number]> = {
+  red: [0.78, 0.16, 0.16], orange: [0.90, 0.52, 0.13], white: [0.88, 0.88, 0.90], green: [0.30, 0.68, 0.30],
+}
+function ExtractCell({ extract }: { extract: string }) {
+  const c = EXTRACT_RGB[extract]
+  if (!c) return <td className="tbl-cell">{extract || '—'}</td>
+  const lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+  return (
+    <td className="tbl-cell" style={{ textTransform: 'capitalize', fontWeight: 600,
+      background: `rgb(${c.map(x => Math.round(x * 255)).join(',')})`, color: lum > 0.45 ? '#101216' : '#f2f4f8' }}>
+      {extract}
+    </td>
   )
 }
 
