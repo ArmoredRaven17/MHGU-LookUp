@@ -108,6 +108,8 @@ export interface ArmorSet {
   id: number
   name: string
   rarity: number
+  sort: number                      // the game's own listing order (mSortID); armor.json comes sorted by it
+  event: boolean                    // listed after the last RARE 11 set: the event sets
   class: 'Blademaster' | 'Gunner' | 'Both'
   gender: 'Male' | 'Female' | 'Both'
   zenny: number

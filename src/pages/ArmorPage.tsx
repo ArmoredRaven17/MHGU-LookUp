@@ -28,6 +28,7 @@ export default function ArmorPage() {
     .filter(s => cls === 'all' || s.class === cls || s.class === 'Both')
     .map(s => ({
       key: String(s.id), label: s.name, icon: equip.armor('Chest', s.rarity),
+      group: s.event ? 'Event' : `RARE ${s.rarity}`,   // in the game's order: RARE 1..11, then the event sets
       sub: `Rarity ${s.rarity} · ${s.class === 'Both' ? 'Both' : s.class}${s.gender !== 'Both' ? ` · ${s.gender}` : ''}`,
       search: s.pieces.map(p => p.name + ' ' + p.skills.map(k => k[0]).join(' ')).join(' '),
     })), [sets, cls, equip])

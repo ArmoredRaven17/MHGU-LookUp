@@ -246,6 +246,7 @@ def armor():
         bm, gn = r[15], r[16]
         out.append({
             'id': sid, 'name': series_label([p['name'] for p in pieces]), 'rarity': r[103] + 1,
+            'sort': u16(r, 4),                      # cArmorSeriesBase mSortID: the game's own listing order
             'class': 'Both' if bm and gn else 'Gunner' if gn else 'Blademaster',
             'gender': 'Both' if r[13] and r[14] else 'Male' if r[13] else 'Female',
             'zenny': u16(r, 17),
@@ -254,6 +255,11 @@ def armor():
             'pieces': pieces,
             'upgrades': [up[lv] for lv in sorted(up) if lv > 1],   # the cost of reaching level 2, 3, ...
         })
+    # The game lists RARE 1..10, then RARE 11, then the event sets (mixed rarities) after the last RARE 11 set.
+    last11 = max(a['sort'] for a in out if a['rarity'] == 11)
+    for a in out:
+        a['event'] = a['sort'] > last11
+    out.sort(key=lambda a: a['sort'])
     write('armor.json', out)
     print('  armor sets', len(out), 'pieces', sum(len(s['pieces']) for s in out))
 
