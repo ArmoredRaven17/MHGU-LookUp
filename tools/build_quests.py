@@ -4,8 +4,9 @@ Every quest is one packed cQuestData (loc/quest/questData/questData_NNNNNNN.ext)
 Viewer work wrote from cQuestData's own property registration (C:/MHGU-RE/offline/decode/lib/questdata.py: field names
 mQuestLv, mMonsterLv, mMapNo, mContract, ... and the five boss slots, mEmType's variant in the high byte).
 The quests listed are the ones the quest boards list (rQuestGroup, quest/quest_group in loc/arc/village/
-common.arc: [u32 quest, u8 attribute 1, u8 attribute 2, u8 mTitleVer]) whose own title is not a placeholder:
-1,479. Each quest's text is eng/quest/questData/questData_NNNNNNN_eng.gmd: title, client, description, other
+common.arc: [u32 quest, u8 attribute 1, u8 attribute 2, u8 mTitleVer]) whose own title is not a placeholder (and,
+here, whose main objective is not one either: PLACEHOLDER_TEXT):
+1,468 (1,479 less the 11 placeholder slots below). Each quest's text is eng/quest/questData/questData_NNNNNNN_eng.gmd: title, client, description, other
 monsters, main objective, failure, subquest.
 
 Columns LOCATED against the Quest Randomizer's QuestData.json (Kiranico-scraped: a check, never a source),
@@ -39,6 +40,12 @@ import os, re, struct, sys
 
 sys.path.insert(0, 'C:/MHGU-RE/offline/decode/lib')
 import questdata                          # noqa: E402  (the shared cQuestData reader)
+
+# Quests whose main objective is placeholder text are empty slots: 11 have real-looking titles, so the shared title
+# filter keeps them (Hunter Low-rank 2/3, Hunter High-rank 9/10, Prowler Low-rank 2/3, Prowler High-rank 3/4, Prowler
+# G-rank Quest 7/8, Quest Template). No boss slot, a 0z fee, and none is in the Quest Randomizer's list. Dropped here
+# only (Raven, 2026-11-14: "Remove them"); the shared reader is unchanged.
+PLACEHOLDER_TEXT = {'dummy', 'dummy data', '@', 'not used'}
 import mh                                 # noqa: E402
 
 COMMON_ARC = 'C:/MHGU-ROM/romfs/nativeNX/loc/arc/village/common.arc'
@@ -102,6 +109,8 @@ def build(gmd_path, write, monster_names, item):
         no = q['mQuestNo']
         t = [x.replace('\r\n', '\n') for x in gmd_path(f'quest/questData/questData_{no:07d}_eng.gmd')]
         t += [''] * (7 - len(t))
+        if t[4].strip().lower() in PLACEHOLDER_TEXT:      # an empty slot with a real-looking title (see the docstring)
+            continue
         g = groups[no]
         bosses = []
         for b in q['boss']:
