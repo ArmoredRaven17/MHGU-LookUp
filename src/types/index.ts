@@ -59,7 +59,7 @@ export interface WeaponLevel {
   phialValue?: number
   shellLv?: number
   notes?: string[]
-  bow?: { arc: string; open: number; shots: string[]; coatings: string[] }
+  bow?: { arc: string; open: number; shots: string[]; coatings: string[]; boost?: string[] }   // boost: coatings the bow boosts
   gun?: {
     reload: string; recoil: string; deviation: string
     ammo: [string, number][]

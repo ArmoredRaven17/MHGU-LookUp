@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { ammoColor, coatingColor, shotColor } from '../data/gunColors'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { loadWeaponIndex, loadWeaponClass } from '../data/loaders'
 import type { WeaponIndex, WeaponClass, Weapon, WeaponLevel } from '../types'
@@ -217,10 +218,24 @@ function Stats({ w, l, sharpness }: { w: Weapon; l: WeaponLevel; sharpness: numb
             <Row k="Arc Shot">{l.bow.arc.replace('Arc Shot: ', '')}</Row>
             <Row k="Charge Shots">
               {l.bow.shots.map((s, i) => (
-                <span key={i}>{i > 0 && ' · '}{i < l.bow!.open ? s : <span className="text-muted" title="Needs the Load Up skill">{s} (Load Up)</span>}</span>
+                <div key={i} style={{ color: shotColor(s), fontWeight: 600 }}>
+                  {s}{i >= l.bow!.open && <span className="text-muted" style={{ fontWeight: 400 }} title="Needs the Load Up skill"> (Load Up)</span>}
+                </div>
               ))}
             </Row>
-            <Row k="Usable Coatings">{l.bow.coatings.join(', ')}</Row>
+            <Row k="Usable Coatings">
+              {l.bow.coatings.map(c => {
+                const boosted = l.bow!.boost?.includes(c)
+                const col = coatingColor(c)
+                return (
+                  <div key={c} style={{ margin: '1px 0' }}>
+                    <span style={{ color: boosted && col ? '#101216' : col, fontWeight: boosted ? 700 : 600, borderRadius: 4,
+                      padding: boosted ? '0 6px' : undefined, background: boosted ? col : undefined }}
+                          title={boosted ? 'Coating Boosts' : undefined}>{c}</span>
+                  </div>
+                )
+              })}
+            </Row>
           </>}
           {l.gun && <>
             <Row k="Reload">{l.gun.reload}</Row>
@@ -234,6 +249,11 @@ function Stats({ w, l, sharpness }: { w: Weapon; l: WeaponLevel; sharpness: numb
   )
 }
 
+const ammoStyle = (a: string) => {
+  const c = ammoColor(a)
+  return c ? { color: c, fontWeight: 600 } : undefined
+}
+
 function GunTables({ g }: { g: NonNullable<WeaponLevel['gun']> }) {
   const scale = useTextScale()
   const small = { fontSize: 12 * scale }
@@ -242,7 +262,7 @@ function GunTables({ g }: { g: NonNullable<WeaponLevel['gun']> }) {
       <div>
         <div style={{ ...small, fontWeight: 600, marginBottom: 4 }}>Ammo</div>
         <table style={{ borderCollapse: 'collapse' }}><tbody>
-          {g.ammo.map(([a, c]) => <tr key={a} className="tbl-row"><td className="tbl-cell">{a}</td><td className="tbl-cell" style={{ textAlign: 'right' }}>{c}</td></tr>)}
+          {g.ammo.map(([a, c]) => <tr key={a} className="tbl-row"><td className="tbl-cell" style={ammoStyle(a)}>{a}</td><td className="tbl-cell" style={{ textAlign: 'right' }}>{c}</td></tr>)}
         </tbody></table>
       </div>
       {g.internal.length > 0 && (
@@ -250,7 +270,7 @@ function GunTables({ g }: { g: NonNullable<WeaponLevel['gun']> }) {
           <div style={{ ...small, fontWeight: 600, marginBottom: 4 }}>Internal Ammo</div>
           <table style={{ borderCollapse: 'collapse' }}>
             <thead><tr><th className="tbl-header">Ammo</th><th className="tbl-header">Total</th><th className="tbl-header">Clip</th></tr></thead>
-            <tbody>{g.internal.map(([a, t, c]) => <tr key={a} className="tbl-row"><td className="tbl-cell">{a}</td><td className="tbl-cell">{t}</td><td className="tbl-cell">{c}</td></tr>)}</tbody>
+            <tbody>{g.internal.map(([a, t, c]) => <tr key={a} className="tbl-row"><td className="tbl-cell" style={ammoStyle(a)}>{a}</td><td className="tbl-cell">{t}</td><td className="tbl-cell">{c}</td></tr>)}</tbody>
           </table>
         </div>
       )}
@@ -259,7 +279,7 @@ function GunTables({ g }: { g: NonNullable<WeaponLevel['gun']> }) {
           <div style={{ ...small, fontWeight: 600, marginBottom: 4 }}>Rapid Fire</div>
           <table style={{ borderCollapse: 'collapse' }}>
             <thead><tr><th className="tbl-header">Ammo</th><th className="tbl-header">Shots</th><th className="tbl-header">Power</th><th className="tbl-header">Wait</th></tr></thead>
-            <tbody>{g.rapid.map(([a, s, p, wt]) => <tr key={a} className="tbl-row"><td className="tbl-cell">{a}</td><td className="tbl-cell">{s}</td><td className="tbl-cell">{p}%</td><td className="tbl-cell">{wt}</td></tr>)}</tbody>
+            <tbody>{g.rapid.map(([a, s, p, wt]) => <tr key={a} className="tbl-row"><td className="tbl-cell" style={ammoStyle(a)}>{a}</td><td className="tbl-cell">{s}</td><td className="tbl-cell">{p}%</td><td className="tbl-cell">{wt}</td></tr>)}</tbody>
           </table>
         </div>
       )}
@@ -267,7 +287,7 @@ function GunTables({ g }: { g: NonNullable<WeaponLevel['gun']> }) {
         <div>
           <div style={{ ...small, fontWeight: 600, marginBottom: 4 }}>Crouching Fire</div>
           <table style={{ borderCollapse: 'collapse' }}><tbody>
-            {g.crouch.map(([a, c]) => <tr key={a} className="tbl-row"><td className="tbl-cell">{a}</td><td className="tbl-cell" style={{ textAlign: 'right' }}>{c}</td></tr>)}
+            {g.crouch.map(([a, c]) => <tr key={a} className="tbl-row"><td className="tbl-cell" style={ammoStyle(a)}>{a}</td><td className="tbl-cell" style={{ textAlign: 'right' }}>{c}</td></tr>)}
           </tbody></table>
         </div>
       )}

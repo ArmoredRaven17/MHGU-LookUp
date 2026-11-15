@@ -22,7 +22,7 @@ table/weaponNNLevelData (one row per level)
       s8 +11 affinity, +12 element value, +14 second element value (Dual Blades) / phial value
       (Switch Axe) / shelling level - 1 (Gunlance) / note set (Hunting Horn), slots at the last byte
   Bow (31): u16 +6 attack, +8 defense, s8 +9 affinity, +10 element value, +12 slots, +13 arc shot,
-      +14 charge levels open, +15..+18 the four charge shots, +19..+28 the coatings
+      +14 charge levels open, +15..+18 the four charge shots, +19..+28 the coatings (1 usable, 2 boosted)
   bowguns (100): u16 +6 attack, +8 defense, s8 +9 affinity, +10 slots, +11 deviation, +12 reload,
       +13 recoil, +14..+18 rows of squatshotData (Heavy: Crouching Fire) or rapidshotData (Light:
       Rapid Fire), +19 five [ammo, total, clip] (Internal Ammo), +34 33 x [capacity, usable] in ammo order
@@ -167,6 +167,11 @@ def build(gmd, rows, write, item, cat):
                     e['bow'] = {'arc': menu[348 + r[13]], 'open': r[14],
                                 'shots': [shots[x] for x in r[15:19] if x],
                                 'coatings': [coatings[k] for k in range(10) if r[19 + k]]}
+                    # a coating byte of 2 is a boost: it occurs only on the four coatings the game can boost
+                    # (C.Range, Poison, Para, Sleep; StartMenuMsg 379 'Coating Boosts'). The code that reads it is not traced.
+                    boost = [coatings[k] for k in range(10) if r[19 + k] == 2]
+                    if boost:
+                        e['bow']['boost'] = boost
                 if c in ('04', '06'):
                     e['slots'] = r[10]
                     g = {'deviation': menu[317 - r[11]], 'reload': menu[304 - r[12]], 'recoil': menu[284 + r[13]],
