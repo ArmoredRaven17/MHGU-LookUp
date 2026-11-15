@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { questPrefix } from '../data/questPrefix'
 import { Link, useParams } from 'react-router-dom'
 import { loadMonsters, loadQuests } from '../data/loaders'
 import type { HitZones, Monster, MonsterRewards, Quest, RewardRow } from '../types'
@@ -89,7 +90,7 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 * scale }}>
             {fought.map(q => (
               <li key={q.id} style={{ marginBottom: 2 }}>
-                <Link to={`/quests/${q.id}`}>{q.title}</Link> <span className="text-muted">({q.category} {q.stars})</span>
+                <span className="text-muted">{questPrefix(q.category, q.stars)}:</span> <Link to={`/quests/${q.id}`}>{q.title}</Link>
               </li>
             ))}
           </ul>

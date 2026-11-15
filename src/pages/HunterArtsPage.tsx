@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { questPrefix } from '../data/questPrefix'
 import { Link, useParams } from 'react-router-dom'
 import { loadArts, loadWeaponIndex } from '../data/loaders'
 import type { ArtUnlock, HunterArt, QuestRef } from '../types'
@@ -73,7 +74,7 @@ export default function HunterArtsPage() {
 }
 
 const QuestLink = ({ q }: { q: QuestRef }) => (
-  <><Link to={`/quests/${q.quest}`}>{q.title}</Link> <span className="text-muted">({q.category} {q.stars})</span></>
+  <><span className="text-muted">{questPrefix(q.category, q.stars)}:</span> <Link to={`/quests/${q.quest}`}>{q.title}</Link></>
 )
 const article = (name: string) => (/^[AEIOU]/i.test(name) ? 'an' : 'a')
 

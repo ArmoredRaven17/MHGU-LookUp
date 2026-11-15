@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { questPrefix } from '../data/questPrefix'
 import { useParams, Link } from 'react-router-dom'
 import { loadCanteen, type Canteen, type Dish, type IngredientUnlock } from '../data/loaders'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
@@ -183,7 +184,7 @@ function Unlock({ u }: { u: IngredientUnlock }) {
   }
   return (
     <>
-      Clear <Link to={`/quests/${u.quest}`}>{u.title}</Link> <span className="text-muted">({u.category} {u.stars})</span>.
+      Clear <span className="text-muted">{questPrefix(u.category, u.stars)}:</span> <Link to={`/quests/${u.quest}`}>{u.title}</Link>.
     </>
   )
 }

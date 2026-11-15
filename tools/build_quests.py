@@ -100,6 +100,12 @@ def stars(lv):
     return f'{lv}★' if lv else ''
 
 
+def quest_label(category, stars_text, title):
+    """'Hub 3★: Title', and 'Special Permit: Title' (Raven, 2026-11-14); the page uses src/data/questPrefix.ts."""
+    head = category if category == 'Special Permit' else f'{category} {stars_text}'.strip()
+    return f'{head}: {title}'
+
+
 def build(gmd_path, write, monster_names, item):
     msg = gmd_path('GUI/06_msg/questMessage_eng.gmd')
     groups = board()
@@ -138,7 +144,7 @@ def build(gmd_path, write, monster_names, item):
             'locale': msg[MAP[q['mMapNo']]] if q['mMapNo'] in MAP else '',
             'time': q['mQuestTime'], 'fee': q['mContract'], 'reward': q['mRemMoney'],
             'hrp': q['mClearRemHuterPoint'], 'subReward': q['mSubRemMoney'], 'subHrp': q['mSubRemHuterPoint'],
-            'requirements': req, 'monsters': bosses, 'target': target, 'rewards': rewards(no, item, flat, f"{t[0]} ({BAND.get(no // 10000, 'Other')} {stars(q['mQuestLv'])})".replace(' )', ')')), '_map': q['mMapNo'] % 100,
+            'requirements': req, 'monsters': bosses, 'target': target, 'rewards': rewards(no, item, flat, quest_label(BAND.get(no // 10000, 'Other'), stars(q['mQuestLv']), t[0])), '_map': q['mMapNo'] % 100,
             '_rankfile': {0: 'low', 1: 'low', 3: 'high', 5: 'g'}.get(q['mMonsterLv']),
         })
     out.sort(key=lambda x: x['order'])
