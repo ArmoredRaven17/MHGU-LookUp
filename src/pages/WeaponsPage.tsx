@@ -78,19 +78,19 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
         <table style={{ borderCollapse: 'collapse' }}>
           <tbody>
             {(w.create ?? []).map(c => (
-              <Row key={`f${c.level}`} k={c.level === 1 ? 'Forge' : `Forge at Lv ${c.level}`}><Materials mats={c.mats} /></Row>
+              <Row key={`f${c.level}`} k={c.level === 1 ? 'Forge' : `Forge at Lv ${c.level}`}><Materials list mats={c.mats} /></Row>
             ))}
             {from && (
               <Row k="Upgrade from">
                 <Link to={`/weapons/${cls.id}/${from.row}`}>{from.name}</Link>
                 <span className="text-muted"> at Lv {w.from!.level}</span>
-                {w.levels[0].cost && <>: <Materials mats={w.levels[0].cost} /></>}
+                {w.levels[0].cost && <div style={{ marginTop: 4 }}><Materials list mats={w.levels[0].cost} /></div>}
               </Row>
             )}
             {level.lv > 1 && (
               <Row k={`Lv ${level.lv - 1} → ${level.lv}`}>
-                <Materials mats={level.cost ?? []} />
-                {forgeHere && <span className="text-muted"> (or forge it at this level, above)</span>}
+                <Materials list mats={level.cost ?? []} />
+                {forgeHere && <div className="text-muted" style={{ marginTop: 4 }}>(or forge it at this level, above)</div>}
               </Row>
             )}
           </tbody>
