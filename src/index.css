@@ -55,9 +55,9 @@ html, body, #root {
 }
 
 /* ── Scrollbars ─────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 /* the title bar's tab strip: a taller scroll bar (Raven, 2026-11-14) */
 .nav-tabs::-webkit-scrollbar { height: 15px; }
