@@ -76,27 +76,38 @@ function ArmorDetail({ s }: { s: ArmorSet }) {
         </table>
       </Section>
 
-      <Section title="Pieces">
+      <Section title="Stats">
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse' }}>
             <thead><tr>
-              {['Slot', 'Piece', 'Slots', 'Skills', 'Forge'].map(h => <th key={h} className="tbl-header" style={{ textAlign: 'left' }}>{h}</th>)}
+              {['Slot', 'Piece', 'Slots', 'Skills'].map(h => <th key={h} className="tbl-header" style={{ textAlign: 'left' }}>{h}</th>)}
             </tr></thead>
             <tbody>
               {s.pieces.map(p => (
                 <tr key={p.slot} className="tbl-row">
-                  <td className="tbl-cell text-muted" style={{ whiteSpace: 'nowrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {equip.armor(p.slot, s.rarity) && <img src={equip.armor(p.slot, s.rarity)} alt="" width={20 * scale} height={20 * scale} style={{ imageRendering: 'pixelated' }} />}
-                      {p.slot}
-                    </span>
-                  </td>
-                  <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }} title={p.desc.replace(/\n/g, ' ')}>{p.name}</td>
-                  <td className="tbl-cell"><SlotsText n={p.slots} /></td>
-                  <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>
+                  <PieceCells p={p} rarity={s.rarity} />
+                  <td className="tbl-cell" style={{ verticalAlign: 'top' }}><SlotsText n={p.slots} /></td>
+                  <td className="tbl-cell" style={{ whiteSpace: 'nowrap', verticalAlign: 'top' }}>
                     {p.skills.map(([k, v]) => <div key={k}>{k} <span style={{ color: v > 0 ? 'var(--positive)' : 'var(--negative)' }}>{v > 0 ? '+' : ''}{v}</span></div>)}
                   </td>
-                  <td className="tbl-cell"><Materials mats={p.create ?? []} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section title="Materials">
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ borderCollapse: 'collapse' }}>
+            <thead><tr>
+              {['Slot', 'Piece', 'Materials'].map(h => <th key={h} className="tbl-header" style={{ textAlign: 'left' }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {s.pieces.map(p => (
+                <tr key={p.slot} className="tbl-row">
+                  <PieceCells p={p} rarity={s.rarity} />
+                  <td className="tbl-cell"><Materials list mats={p.create ?? []} /></td>
                 </tr>
               ))}
             </tbody>
@@ -136,5 +147,23 @@ function ArmorDetail({ s }: { s: ArmorSet }) {
         <NotesBox target={{ type: 'armor', id: String(s.id), name: s.name, category: `Rarity ${s.rarity}`, path }} />
       </Section>
     </div>
+  )
+}
+
+// A piece's Slot (with its icon) and name cells, shared by the Stats and Materials tables.
+function PieceCells({ p, rarity }: { p: ArmorSet['pieces'][number]; rarity: number }) {
+  const scale = useTextScale()
+  const equip = useEquipIcons()
+  const icon = equip.armor(p.slot, rarity)
+  return (
+    <>
+      <td className="tbl-cell text-muted" style={{ whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          {icon && <img src={icon} alt="" width={20 * scale} height={20 * scale} style={{ imageRendering: 'pixelated' }} />}
+          {p.slot}
+        </span>
+      </td>
+      <td className="tbl-cell" style={{ whiteSpace: 'nowrap', verticalAlign: 'top' }} title={p.desc.replace(/\n/g, ' ')}>{p.name}</td>
+    </>
   )
 }
