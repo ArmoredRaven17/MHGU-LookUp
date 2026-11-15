@@ -339,6 +339,18 @@ def monsters():
         if z:
             e['hz'] = z
         out.append(e)
+    # The Monster Viewer's own order (Raven, 2026-11-14: "Organize monsters in the same order they appear in the
+    # viewer"): `out` keeps its monsters.json order (the page sorts by position within each class), and a part-review `listAfter` moves a monster directly below
+    # another, under that one's heading (index.html monsterBuckets: Ahtal-Neset under Ahtal-Ka). Its class is unchanged.
+    review = load('part-review.json')
+    for e in list(out):
+        after = (review.get(e['id']) or {}).get('listAfter') if isinstance(review.get(e['id']), dict) else None
+        to = next((x for x in out if x['id'] == after), None)
+        if to:
+            out.remove(e)
+            out.insert(out.index(to) + 1, e)
+            if to['class'] != e['class']:
+                e['listClass'] = to['class']
     order = [c for c in load('monster-classes.json')['_about']['order'] if any(e['class'] == c for e in out)]
     write('monsters.json', {'zoneTypes': ZONE_TYPES, 'classes': order, 'monsters': out})
     print('  monsters', len(out), 'with zones', sum(1 for e in out if 'hz' in e))

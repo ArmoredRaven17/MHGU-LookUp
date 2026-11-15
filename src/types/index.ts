@@ -158,6 +158,7 @@ export interface Monster {
   small: boolean
   class: string
   quests: [string, number][]        // [rank, how many quests have it at that rank]
+  listClass?: string                // listed under this class's heading instead (the viewer's listAfter)
   hz?: HitZones
 }
 

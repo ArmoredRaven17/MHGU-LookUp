@@ -31,16 +31,18 @@ export default function MonstersPage() {
   const [size, setSize] = useState('large')
   useEffect(() => { loadMonsters().then(setData) }, [])
 
-  // Listed under their class, in the classes' order; a monster opened by link shows its own size's list.
+  // Listed as the Monster Viewer lists them: under their class, in the classes' order, each class in the viewer's own
+  // order (variants next to their monster); a monster opened by link shows its own size's list.
   const mon = data.monsters.find(m => m.id === id)
   useEffect(() => { if (mon) setSize(mon.small ? 'small' : 'large') }, [mon])
   const icon = useMonsterIcons()
   const entries = useMemo(() => {
     const rank = (c: string) => { const i = (data.classes ?? []).indexOf(c); return i < 0 ? 99 : i }
+    const pos = new Map(data.monsters.map((m, i) => [m.id, i]))      // monsters.json is in the viewer's order
     return data.monsters
       .filter(m => (size === 'small') === m.small)
-      .sort((a, b) => rank(a.class) - rank(b.class) || a.name.localeCompare(b.name))
-      .map(m => ({ key: m.id, label: m.name, group: m.class || 'Unclassified', search: m.class, icon: icon(m.id) }))
+      .sort((a, b) => rank(a.listClass ?? a.class) - rank(b.listClass ?? b.class) || pos.get(a.id)! - pos.get(b.id)!)
+      .map(m => ({ key: m.id, label: m.name, group: m.listClass ?? (m.class || 'Unclassified'), search: m.class, icon: icon(m.id) }))
   }, [data, size, icon])
 
   return (
