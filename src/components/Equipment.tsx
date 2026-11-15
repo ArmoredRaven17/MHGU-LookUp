@@ -26,9 +26,18 @@ export function SharpnessBar({ row, length, max }: { row: number[]; length: numb
 }
 
 /** A material list: "Iron Ore ×3", or "Ore (Low Rank) 4 pts" for a material-point cost. */
-export function Materials({ mats }: { mats: Material[] }) {
+// `list`: one material per line (the Weapons page's Cost table) instead of a comma-separated run.
+export function Materials({ mats, list }: { mats: Material[]; list?: boolean }) {
   const scale = useTextScale()
   if (!mats.length) return <span className="text-muted">—</span>
+  const one = (m: Material) => m.length === 3
+    ? <>{m[0]} materials <span className="text-muted">{m[1]} pts</span></>
+    : <><ItemName name={m[0]} /> <span className="text-muted">×{m[1]}</span></>
+  if (list) return (
+    <div style={{ fontSize: 13 * scale, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {mats.map((m, i) => <div key={i} style={{ whiteSpace: 'nowrap' }}>{one(m)}</div>)}
+    </div>
+  )
   return (
     <span style={{ fontSize: 13 * scale }}>
       {mats.map((m, i) => (

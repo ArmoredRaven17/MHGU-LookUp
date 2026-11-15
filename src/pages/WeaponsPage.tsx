@@ -147,7 +147,7 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
                 <tr key={l.lv} className="tbl-row" onClick={() => setLv(l.lv)} style={{ cursor: 'pointer', outline: l.lv === lv ? '1px solid var(--accent)' : undefined }}>
                   <td className="tbl-cell">{l.lv}</td>
                   <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>{formAt(l.lv).name}</td>
-                  <td className="tbl-cell"><Materials mats={l.lv === 1 ? (w.create?.find(c => c.level === 1)?.mats ?? l.cost ?? []) : (l.cost ?? [])} /></td>
+                  <td className="tbl-cell"><Materials list mats={l.lv === 1 ? (w.create?.find(c => c.level === 1)?.mats ?? l.cost ?? []) : (l.cost ?? [])} /></td>
                 </tr>
               ))}
             </tbody>
