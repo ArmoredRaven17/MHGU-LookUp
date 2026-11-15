@@ -34,7 +34,6 @@ export default function DecorationsPage() {
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(d => ({
       key: String(d.id), label: d.name, icon: icons.byId(d.id),
-      sub: d.skills.map(([k, v]) => `${k} ${v > 0 ? '+' : ''}${v}`).join(', '),
       search: d.skills.map(s => s[0]).join(' '),
     })), [decos, slots, icons])
   const deco = decos.find(d => String(d.id) === id)
