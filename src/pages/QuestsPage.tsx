@@ -25,49 +25,57 @@ export default function QuestsPage() {
   // Village and Hub quests are grouped by stars; Special Permits by monster (below); the rest by rank.
   const byRank = cat === 'Event' || cat === 'Arena' || cat === 'Training'
   const icon = useTargetIcon()
-  // Special Permits are listed by monster (Raven, 2026-11-14): the quest number is 40XXYY, XX the Deviant (01..18, the
-  // game's order) and YY the permit level. The quest board records no group, so each XX is named by the monster most
-  // of its quests target (its level 6 quests earn Wycademy Points, some levels add another monster).
+  // Special Permits are listed by monster (Raven, 2026-11-14), in the Deviants' own order: permitMonsters below.
   const permit = cat === 'Special Permit'
-  const permitName = useMemo(() => {
-    const votes = new Map<number, Map<string, number>>(), names = new Map<string, string>()
-    for (const q of quests) {
-      if (q.category !== 'Special Permit' || !q.target || !('monster' in q.target)) continue
-      const g = Math.floor(q.id / 100) % 100, m = q.target.monster
-      const v = votes.get(g) ?? new Map<string, number>()
-      v.set(m, (v.get(m) ?? 0) + 1); votes.set(g, v)
-      const n = q.monsters.find(x => x[0] === m)?.[1]
-      if (n) names.set(m, n)
-    }
-    return new Map([...votes].map(([g, v]) => [g, names.get([...v].sort((a, b) => b[1] - a[1])[0][0]) ?? '']))
-  }, [quests])
+  const permitMon = useMemo(() => permitMonsters(quests), [quests])
   const pgroup = (q: Quest) => Math.floor(q.id / 100) % 100
   const entries = useMemo(() => quests
     .filter(q => q.category === cat)
     .sort((a, b) => (permit ? pgroup(a) - pgroup(b) : 0)
       || (byRank ? RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank) : a.level - b.level) || a.order - b.order)
     .map(q => ({
-      key: String(q.id), label: q.title, icon: icon(q),
+      key: String(q.id), label: q.title, icon: icon(q, permit ? permitMon.get(pgroup(q))?.id : undefined),
       sub: [permit ? q.stars : '', q.key ? 'Key Quest' : '', q.locale, byRank ? '' : q.rank].filter(Boolean).join(' · '),
-      group: permit ? permitName.get(pgroup(q)) || q.stars : byRank ? q.rank || cat : q.stars,
+      group: permit ? permitMon.get(pgroup(q))?.name || q.stars : byRank ? q.rank || cat : q.stars,
       search: q.objective + ' ' + q.monsters.map(m => m[1]).join(' '),
-    })), [quests, cat, byRank, icon, permit, permitName])
+    })), [quests, cat, byRank, icon, permit, permitMon])
 
   return (
     <ListPage entries={entries} base="/quests" selected={id} placeholder="Search quests, objectives or monsters…"
               emptyText="Select a quest from the list."
               filter={{ value: cat, options: CATEGORIES.map(c => ({ value: c, label: c })), onChange: setCat }}>
-      {quest && <QuestDetail key={quest.id} q={quest} />}
+      {quest && <QuestDetail key={quest.id} q={quest}
+                             namesake={quest.category === 'Special Permit' ? permitMon.get(Math.floor(quest.id / 100) % 100)?.id : undefined} />}
     </ListPage>
   )
 }
 
-// The main target's icon: the monster's, or the item's for a delivery (tools/build_quests.py `target`).
+// The main target's icon: the monster's, or the item's for a delivery (tools/build_quests.py `target`). A Special
+// Permit quest takes its Deviant's icon instead (`monster`; Raven, 2026-11-14: "Dreadqueen I -> Dreadqueen").
 function useTargetIcon() {
   const monster = useMonsterIcons()
   const items = useItemIcons()
-  return useMemo(() => (q: Quest) => !q.target ? undefined
+  return useMemo(() => (q: Quest, namesake?: string) => namesake ? monster(namesake) : !q.target ? undefined
     : 'monster' in q.target ? monster(q.target.monster) : items.byId(q.target.item), [monster, items])
+}
+
+// Special Permit groups (the quest number is 40XXYY: XX the Deviant, YY the permit level; the quest board records no
+// group): each XX's Deviant is the monster most of its quests target (its level 6 quests earn Wycademy Points, some
+// levels add another monster).
+function permitMonsters(quests: Quest[]) {
+  const votes = new Map<number, Map<string, number>>(), names = new Map<string, string>()
+  for (const q of quests) {
+    if (q.category !== 'Special Permit' || !q.target || !('monster' in q.target)) continue
+    const g = Math.floor(q.id / 100) % 100, m = q.target.monster
+    const v = votes.get(g) ?? new Map<string, number>()
+    v.set(m, (v.get(m) ?? 0) + 1); votes.set(g, v)
+    const n = q.monsters.find(x => x[0] === m)?.[1]
+    if (n) names.set(m, n)
+  }
+  return new Map([...votes].map(([g, v]) => {
+    const id = [...v].sort((a, b) => b[1] - a[1])[0][0]
+    return [g, { id, name: names.get(id) ?? '' }]
+  }))
 }
 
 function Row({ k, children }: { k: string; children: ReactNode }) {
@@ -79,14 +87,14 @@ function Row({ k, children }: { k: string; children: ReactNode }) {
   )
 }
 
-function QuestDetail({ q }: { q: Quest }) {
+function QuestDetail({ q, namesake }: { q: Quest; namesake?: string }) {
   const scale = useTextScale()
   const targetIcon = useTargetIcon()
   const path = `/quests/${q.id}`
   const z = (n: number) => `${n.toLocaleString()}z`
   return (
     <div style={{ maxWidth: 760 }}>
-      <DetailHeader title={q.title} icon={targetIcon(q)} sub={[q.category, q.stars, q.rank, q.key ? 'Key Quest' : ''].filter(Boolean).join(' · ')}>
+      <DetailHeader title={q.title} icon={targetIcon(q, namesake)} sub={[q.category, q.stars, q.rank, q.key ? 'Key Quest' : ''].filter(Boolean).join(' · ')}>
         <BookmarkButton bookmark={{ type: 'quest', id: String(q.id), name: q.title, path }} />
       </DetailHeader>
 
