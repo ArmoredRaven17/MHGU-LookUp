@@ -133,6 +133,15 @@ def styles():
 
 
 # ── Hunter Arts ─────────────────────────────────────────────────────────────────────────────
+def monster_ref(key):
+    """A monster key (em + variant << 8, + 0x1000 for a small monster) -> {id, name} as the Monsters page lists it
+    (monsters.json, written by monsters()): em043 variant 5 is em043_05, Savage Deviljho."""
+    mid = '%s%03d_%02d' % ('ems' if key & 0x1000 else 'em', key & 0xFF, (key >> 8) & 0xF)
+    with open(os.path.join(OUT, 'monsters.json'), encoding='utf8') as f:
+        names = {m['id']: m['name'] for m in json.load(f)['monsters']}
+    return {'id': mid, 'name': names[mid]}
+
+
 def arts():
     s = gmd('hunterArtsData_eng.gmd')
     n = len(rows('hunterArtsData.hta', 25))
@@ -146,6 +155,17 @@ def arts():
     out = [{'id': i, 'name': s[4 * i], 'short': s[4 * i + 2], 'full': s[4 * i + 3],
             'category': struct.unpack_from('<I', hta[i], 8)[0], 'weapon': weapon(struct.unpack_from('<I', hta[i], 8)[0])}
            for i in range(1, n) if s[4 * i] not in ('@', '(None)')]     # '@' rows are empty slots
+    # How each Art is learned: tools/build_arts_unlocks.py (needs quests.json, written by quests())
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import build_arts_unlocks
+    with open(os.path.join(OUT, 'quests.json'), encoding='utf8') as f:
+        quest_info = {q['id']: q for q in json.load(f)}
+    villages = gmd('HN_HunternoteMsg_eng.gmd')[1:5]            # Bherna, Kokoto, Pokke, Yukumo
+    import build_canteen
+    ways = build_arts_unlocks.build({a['id']: a['name'] for a in out}, quest_info, villages, monster_ref,
+                                    build_canteen.progress_quests())
+    for a in out:
+        a['unlock'] = ways[a['id']]
     write('arts.json', out)
     print('  arts', len(out))
 
@@ -450,9 +470,10 @@ def items(skip=()):
 
 
 if __name__ == '__main__':
-    skills(); styles(); arts(); weapons(); armor()
+    skills(); styles(); weapons(); armor()
     names = monsters()
     reachable, rewarded = quests(names)
+    arts()
     gathered = gathering(reachable)
     sources(names, gathered, rewarded)
     canteen()

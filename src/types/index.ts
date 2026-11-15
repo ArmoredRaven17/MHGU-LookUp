@@ -36,7 +36,19 @@ export interface HunterArt {
   full: string
   category: number                  // mArtsCategory: groups an Art's tiers; 1..10 the generic Arts
   weapon: string | null             // weapon class (w00..w14), null for a generic Art
+  unlock: ArtUnlock[]               // the ways the game teaches it, any one (tools/build_arts_unlocks.py)
 }
+
+export interface QuestRef { quest: number; title: string; category: string; stars: string }
+export type ArtUnlock =
+  | { kind: 'start' }
+  | ({ kind: 'quest' } & QuestRef)
+  | { kind: 'quests'; quests: QuestRef[] }                                   // every one of them
+  | { kind: 'progress'; village?: string; hr?: number; hub?: string }       // Village N★ Quests open, or HR N / G1★
+  | { kind: 'requests'; village: string; count: number }
+  | { kind: 'contribution'; village: string; points: number }
+  | { kind: 'hunt'; monsters: { id: string; name: string }[] }
+  | { kind: 'palico'; level: number }
 
 // A material: [name, quantity], or [category name, points, 'pts'] for a material-point cost.
 export type Material = [string, number] | [string, number, 'pts']

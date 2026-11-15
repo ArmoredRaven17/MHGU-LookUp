@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { loadArts, loadWeaponIndex } from '../data/loaders'
-import type { HunterArt } from '../types'
+import type { ArtUnlock, HunterArt, QuestRef } from '../types'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
@@ -55,6 +55,12 @@ export default function HunterArtsPage() {
               <h3 style={{ margin: '0 0 6px', fontSize: 15 * scale, color: 'var(--accent)' }}>{t.name}</h3>
               <GameText text={t.short} style={{ margin: '0 0 8px', color: 'var(--muted)', fontStyle: 'italic', fontSize: 13 * scale }} />
               <GameText text={t.full} style={{ margin: 0, fontSize: 13 * scale }} />
+              <div style={{ marginTop: 10, fontSize: 13 * scale }}>
+                <div className="text-muted" style={{ fontSize: 12 * scale, marginBottom: 2 }}>How to Get It</div>
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {t.unlock.map((u, i) => <li key={i} style={{ marginBottom: 2 }}>{i > 0 && <span className="text-muted">or </span>}<Unlock u={u} /></li>)}
+                </ul>
+              </div>
             </div>
           ))}
           <Section title="Notes">
@@ -64,4 +70,32 @@ export default function HunterArtsPage() {
       )}
     </ListPage>
   )
+}
+
+const QuestLink = ({ q }: { q: QuestRef }) => (
+  <><Link to={`/quests/${q.quest}`}>{q.title}</Link> <span className="text-muted">({q.category} {q.stars})</span></>
+)
+const article = (name: string) => (/^[AEIOU]/i.test(name) ? 'an' : 'a')
+
+// One way the game teaches an Art (tools/build_arts_unlocks.py says where each is read).
+function Unlock({ u }: { u: ArtUnlock }) {
+  switch (u.kind) {
+    case 'start': return <>From the start.</>
+    case 'quest': return <>Clear <QuestLink q={u} />.</>
+    case 'quests': return <>Clear {u.quests.map((q, i) => <span key={q.quest}>{i > 0 && ' and '}<QuestLink q={q} /></span>)}.</>
+    case 'progress': {
+      const parts = [u.village && `unlock Village ${u.village} Quests`, u.hr && `reach HR ${u.hr}`, u.hub && `unlock ${u.hub} Quests`]
+        .filter(Boolean) as string[]
+      const text = parts.join(', or ')
+      return <>{text.charAt(0).toUpperCase() + text.slice(1)}.</>
+    }
+    case 'requests': return <>Complete {u.count} Villager Requests in {u.village}.</>
+    case 'contribution': return <>Earn {u.points} Contribution Points in {u.village}.</>
+    case 'hunt': return (
+      <>Hunt {u.monsters.map((m, i) => (
+        <span key={m.id}>{i > 0 && ' or '}{article(m.name)} <Link to={`/monsters/${m.id}`}>{m.name}</Link></span>
+      ))}.</>
+    )
+    case 'palico': return <>Raise a Palico to Lv {u.level}.</>
+  }
 }
