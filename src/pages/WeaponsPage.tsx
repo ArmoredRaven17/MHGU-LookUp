@@ -77,7 +77,7 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
       <Section title="Material List">
         <table style={{ borderCollapse: 'collapse' }}>
           <tbody>
-            {(w.create ?? []).map(c => (
+            {(w.create ?? []).filter(c => c.level === lv).map(c => (
               <Row key={`f${c.level}`} k={c.level === 1 ? 'Forge' : `Forge at Lv ${c.level}`}><Materials list mats={c.mats} /></Row>
             ))}
             {from && (
