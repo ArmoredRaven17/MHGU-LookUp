@@ -326,6 +326,8 @@ def monsters():
     load = lambda f: json.load(open(MV + f, encoding='utf8'))
     mons = load('monsters.json')['monsters']
     hzsrc = build_hitzones.Source()
+    import build_rewards
+    rewards = build_rewards.build({m['id'] for m in mons if m['name']}, item_names())
     classes, levels = load('monster-classes.json')['classes'], load('quest-levels.json')
     level_names = levels['levelNames']
     out = []
@@ -338,6 +340,8 @@ def monsters():
         z = build_hitzones.build(hzsrc, m['id'])
         if z:
             e['hz'] = z
+        if m['id'] in rewards:
+            e['rewards'] = rewards[m['id']]
         out.append(e)
     # The Monster Viewer's own order (Raven, 2026-11-14: "Organize monsters in the same order they appear in the
     # viewer"): `out` keeps its monsters.json order (the page sorts by position within each class), and a part-review `listAfter` moves a monster directly below

@@ -159,6 +159,15 @@ export interface Monster {
   quests: [string, number][]        // [rank, how many quests have it at that rank]
   listClass?: string                // listed under this class's heading instead (the viewer's listAfter)
   hz?: HitZones
+  rewards?: Record<string, MonsterRewards>   // per rank (Low Rank, High Rank, G Rank): tools/build_rewards.py
+}
+
+export type RewardRow = [number, string, number, number]        // item id, item name, quantity, percent
+// Every list the ROM has; a group can hold several (a Deviant's level bands, some extra shiny drops), not yet told apart
+export interface MonsterRewards {
+  carve?: RewardRow[][]; tail?: RewardRow[][]; mine?: RewardRow[][]; shiny?: RewardRow[][]; gather?: RewardRow[][]
+  capture?: RewardRow[][]
+  break?: Record<string, RewardRow[][]>     // by the ROM's break number; which part it is, is not read yet
 }
 
 // A monster's hit zones, one table (tools/build_hitzones.py): each zone, then the rows a state or a part puts on it

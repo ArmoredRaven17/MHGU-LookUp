@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { loadMonsters } from '../data/loaders'
-import type { HitZones, Monster } from '../types'
+import type { HitZones, Monster, MonsterRewards } from '../types'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import { useMonsterIcons } from '../data/icons'
 import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
 import { useTextScale } from '../theme/textScale'
+import ItemName from '../components/ItemName'
 
 const ZONE_LABELS: Record<string, string> = {
   cut: 'Cut', impact: 'Impact', shot: 'Shot', fire: 'Fire', water: 'Water', ice: 'Ice',
@@ -100,6 +101,8 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
         </Section>
       )}
 
+      {m.rewards && RANKS.filter(r => m.rewards![r]).map(r => <RewardSection key={r} rank={r} rw={m.rewards![r]} />)}
+
       <Section title="Notes">
         <NotesBox target={{ type: 'monster', id: m.id, name: m.name, category: m.class || 'Monster', path }} />
       </Section>
@@ -145,6 +148,40 @@ function HitZoneSection({ hz, types }: { hz: HitZones; types: string[] }) {
             ))}
           </tbody>
         </table>
+      </div>
+    </Section>
+  )
+}
+
+// Carves and drops, one section per rank (Raven, 2026-11-14), the groups named and ordered as Raven gave them. A group
+// shows only where the rank has one list for it: several lists (a Deviant's level bands, some monsters' extra shiny
+// drops) are not told apart yet, and part breaks wait for the ROM's break-number -> part link.
+const RANKS = ['Low Rank', 'High Rank', 'G Rank']
+const GROUPS: [keyof MonsterRewards, string][] = [
+  ['carve', 'Carve'], ['tail', 'Tail Carve'], ['mine', 'Mine'], ['shiny', 'Shiny Drop'], ['gather', 'Gather'], ['capture', 'Capture'],
+]
+function RewardSection({ rank, rw }: { rank: string; rw: MonsterRewards }) {
+  const scale = useTextScale()
+  const shown = GROUPS.filter(([k]) => { const l = rw[k] as unknown[] | undefined; return l?.length === 1 })
+  if (!shown.length) return null
+  return (
+    <Section title={rank}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, alignItems: 'flex-start' }}>
+        {shown.map(([k, label]) => (
+          <div key={k}>
+            <div style={{ fontSize: 12 * scale, fontWeight: 600, marginBottom: 4 }}>{label}</div>
+            <table style={{ borderCollapse: 'collapse', fontSize: 13 * scale }}><tbody>
+              {(rw[k] as MonsterRewards['carve'])![0].map(([id, name, q, p], i) => (
+                <tr key={i} className="tbl-row">
+                  <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>
+                    <Link to={`/items/${id}`}><ItemName name={name} id={id} /></Link>{q > 1 && <span className="text-muted"> ×{q}</span>}
+                  </td>
+                  <td className="tbl-cell" style={{ textAlign: 'right' }}>{p}%</td>
+                </tr>
+              ))}
+            </tbody></table>
+          </div>
+        ))}
       </div>
     </Section>
   )
