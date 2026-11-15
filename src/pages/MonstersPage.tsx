@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { loadMonsters } from '../data/loaders'
-import type { HitZones, Monster, MonsterRewards } from '../types'
+import { loadMonsters, loadQuests } from '../data/loaders'
+import type { HitZones, Monster, MonsterRewards, Quest } from '../types'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import { useMonsterIcons } from '../data/icons'
 import BookmarkButton from '../components/BookmarkButton'
@@ -61,8 +61,21 @@ export default function MonstersPage() {
   )
 }
 
+// Every quest with the monster in a boss slot (Raven, 2026-11-14: "How about we list the quests instead"), in the
+// Quests page's order: category, then stars, then the quest board's order.
+const QUEST_CATEGORIES = ['Village', 'Hub', 'Special Permit', 'Arena', 'Event', 'Training']
+let questCache: Promise<Quest[]> | null = null
+function useFoughtIn(id: string) {
+  const [quests, setQuests] = useState<Quest[]>([])
+  useEffect(() => { (questCache ??= loadQuests()).then(setQuests) }, [])
+  return useMemo(() => quests.filter(q => q.monsters.some(([mid]) => mid === id))
+    .sort((a, b) => QUEST_CATEGORIES.indexOf(a.category) - QUEST_CATEGORIES.indexOf(b.category) || a.level - b.level || a.order - b.order),
+  [quests, id])
+}
+
 function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
   const scale = useTextScale()
+  const fought = useFoughtIn(m.id)
   const icon = useMonsterIcons()
   const path = `/monsters/${m.id}`
   return (
@@ -71,11 +84,15 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
         <BookmarkButton bookmark={{ type: 'monster', id: m.id, name: m.name, path }} />
       </DetailHeader>
 
-      {m.quests.length > 0 && (
+      {fought.length > 0 && (
         <Section title="Fought In">
-          <p style={{ margin: 0, fontSize: 13 * scale }}>
-            {m.quests.map(([rank, n]) => `${rank} (${n} quest${n === 1 ? '' : 's'})`).join(' · ')}
-          </p>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 * scale }}>
+            {fought.map(q => (
+              <li key={q.id} style={{ marginBottom: 2 }}>
+                <Link to={`/quests/${q.id}`}>{q.title}</Link> <span className="text-muted">({q.category} {q.stars})</span>
+              </li>
+            ))}
+          </ul>
         </Section>
       )}
 
