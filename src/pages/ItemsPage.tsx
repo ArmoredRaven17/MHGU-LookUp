@@ -9,10 +9,6 @@ import GameText from '../components/GameText'
 import { useItemIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
 
-// The game has no item categories; these group the items' icon shapes (see tools/build_data.py).
-const CATEGORIES = ['Consumables', 'Tools & Traps', 'Ammo & Coatings', 'Plants & Mushrooms', 'Bugs & Fish',
-  'Ore & Minerals', 'Monster Materials', 'Other Materials', 'Kinsect Extracts', 'Scraps', 'Armor Spheres',
-  'Tickets & Coins', 'Relics & Charms', 'Books', 'Other']
 type Source = [string, string, string, number | null]   // kind, where, detail, percent
 const KINDS = ['Shop', 'Combining', 'Monster', 'Gathering', 'Quest reward']
 const HEADINGS: Record<string, string> = {
@@ -27,22 +23,19 @@ export default function ItemsPage() {
   const [sources, setSources] = useState<Record<string, Source[]>>({})
   useEffect(() => { loadItems().then(setItems); loadSources().then(setSources) }, [])
 
-  const [cat, setCat] = useState('all')
-  const entries = useMemo(() => [...items]
-    .filter(i => cat === 'all' || i.category === cat)
-    .sort((a, b) => CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category) || a.name.localeCompare(b.name) || a.id - b.id)
-    .map(i => ({ key: String(i.id), label: i.name, group: i.category, icon: icons.byId(i.id) })), [items, cat, icons])
+  // The game has no item categories (Raven, 2026-11-14: "do not make up things on the fly without my instructions"):
+  // the items are listed in the game's own item table order (itemData.itm), with no groups.
+  const entries = useMemo(() => [...items].sort((a, b) => a.id - b.id)
+    .map(i => ({ key: String(i.id), label: i.name, icon: icons.byId(i.id) })), [items, icons])
   const item = items.find(i => String(i.id) === id)
   const path = `/items/${id}`
 
   return (
     <ListPage entries={entries} base="/items" selected={id} placeholder="Search items…"
-              emptyText="Select an item from the list."
-              filter={{ value: cat, onChange: setCat,
-                        options: [{ value: 'all', label: 'All items' }, ...CATEGORIES.map(c => ({ value: c, label: c }))] }}>
+              emptyText="Select an item from the list.">
       {item && (
         <div style={{ maxWidth: 760 }}>
-          <DetailHeader title={item.name} sub={item.category} icon={icons.byId(item.id)}>
+          <DetailHeader title={item.name} icon={icons.byId(item.id)}>
             <BookmarkButton bookmark={{ type: 'item', id: String(item.id), name: item.name, path }} />
           </DetailHeader>
           <Section title="In-Game Description">

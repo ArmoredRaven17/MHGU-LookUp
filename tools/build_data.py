@@ -384,46 +384,6 @@ def sources(monster_names, gathered, rewarded):
     build_sources.build(write, monster_names, gathered, rewarded, item_names())
 
 
-# ── Item categories ─────────────────────────────────────────────────────────────────────────
-# The game has no item categories: the item box sorts by rarity, and no text table names a kind of item. What
-# each item does carry is its icon shape (itemData.itm byte +16). The categories below group icon shapes; their
-# names are this app's.
-CATEGORY = {
-    'Consumables': {22, 29, 4, 34, 51},
-    'Tools & Traps': {19, 20, 21, 23, 24, 25, 26, 27, 35, 37, 38, 39, 42, 18, 33},
-    'Ammo & Coatings': {30, 32, 31},
-    'Plants & Mushrooms': {1, 3, 8, 93, 94},
-    'Bugs & Fish': {2, 6},
-    'Ore & Minerals': {9, 44},
-    'Monster Materials': {5, 7, 10, 11, 12, 13, 14, 15, 16, 17, 50, 92, 28},
-    'Other Materials': set(),
-    'Kinsect Extracts': {82},
-    'Scraps': {49},
-    'Tickets & Coins': {36, 40, 87},
-    'Armor Spheres': {41},
-    'Relics & Charms': {45, 52, 83},
-    'Books': {43},
-}
-CATEGORY_ORDER = list(CATEGORY) + ['Other']
-
-
-def item_category(r):
-    icon = r[16]
-    c = next((c for c, icons in CATEGORY.items() if icon in icons), 'Other')
-    # Byte +12 separates the usable items that share a shape with materials -- the bombs and paintball on the orb
-    # (gems and Bomb Casing do not have it), Dung Bomb on the dung shape, Might Seed and the like on the berry. On
-    # other shapes it is set on monster materials too, so it is only read on these three.
-    if r[12] and icon in (16, 28):
-        return 'Tools & Traps'
-    if r[12] and icon == 8:
-        return 'Consumables'
-    # On the consumable shapes (bottle, pill, meat) the flag is exact: potions, pills and meats have it; sacs,
-    # fluids, extracts, Catalyst and Gunpowder do not.
-    if c == 'Consumables' and not r[12]:
-        return 'Other Materials'
-    return c
-
-
 # ── Canteen ─────────────────────────────────────────────────────────────────────────────────
 def canteen():
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -472,7 +432,7 @@ def items(skip=()):
             continue                       # the same item twice (the ammo appears once per gun kind)
         seen.add((name, desc))
         r = itm[8 + 44 * i: 8 + 44 * (i + 1)]
-        e = {'id': i, 'name': name, 'desc': desc, 'carry': r[6], 'category': item_category(r),
+        e = {'id': i, 'name': name, 'desc': desc, 'carry': r[6],
              'sell': struct.unpack_from('<I', r, 19)[0]}
         if i in sold:                      # every item has a buy value in the table; only a shop item is bought
             e['buy'] = struct.unpack_from('<I', r, 23)[0]
