@@ -11,6 +11,8 @@ import { useEquipIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
 
 const RES = ['Fire', 'Water', 'Thunder', 'Ice', 'Dragon']
+// The MHFU LookUp's element colours (as src/data/gunColors.ts uses them for elemental ammo)
+const RES_COLOR = ['#FF4D2E', '#4A9EFF', '#F5C400', '#7FD8F0', '#B060E0']
 const CLASSES = [
   { value: 'all', label: 'All armor' },
   { value: 'Blademaster', label: 'Blademaster' },
@@ -66,12 +68,25 @@ function ArmorDetail({ s }: { s: ArmorSet }) {
           <tbody>
             <tr className="tbl-row"><td className="tbl-cell text-muted" style={{ paddingRight: 16 }}>Defense (each piece)</td>
               <td className="tbl-cell">{s.defense[0]}{s.defense.length > 1 && ` → ${s.defense[s.defense.length - 1]} at Lv ${s.defense.length}`}</td></tr>
-            <tr className="tbl-row"><td className="tbl-cell text-muted">Resistances (each piece)</td>
-              <td className="tbl-cell">{RES.map((r, i) => `${r} ${s.res[i] > 0 ? '+' : ''}${s.res[i]}`).join(' · ')}</td></tr>
+            <tr className="tbl-row"><td className="tbl-cell text-muted" style={{ verticalAlign: 'top' }}>Resistances (each piece)</td>
+              <td className="tbl-cell">
+                {RES.map((r, i) => (
+                  <div key={r}>
+                    <span style={{ color: RES_COLOR[i], fontWeight: 600 }}>{r}</span>{' '}
+                    <span style={{ color: s.res[i] > 0 ? 'var(--positive)' : s.res[i] < 0 ? 'var(--negative)' : undefined }}>
+                      {s.res[i] > 0 ? '+' : ''}{s.res[i]}
+                    </span>
+                  </div>
+                ))}
+              </td></tr>
             {s.zenny > 0 && <tr className="tbl-row"><td className="tbl-cell text-muted">Forge price (each piece)</td>
               <td className="tbl-cell">{s.zenny}z</td></tr>}
-            <tr className="tbl-row"><td className="tbl-cell text-muted">Skill points (full set)</td>
-              <td className="tbl-cell">{totals.map(([k, v]) => `${k} ${v > 0 ? '+' : ''}${v}`).join(', ') || '—'}</td></tr>
+            <tr className="tbl-row"><td className="tbl-cell text-muted" style={{ verticalAlign: 'top' }}>Skill points (full set)</td>
+              <td className="tbl-cell">
+                {totals.length ? totals.map(([k, v]) => (
+                  <div key={k}>{k} <span style={{ color: v > 0 ? 'var(--positive)' : 'var(--negative)' }}>{v > 0 ? '+' : ''}{v}</span></div>
+                )) : '—'}
+              </td></tr>
           </tbody>
         </table>
       </Section>
