@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ELEMENT_COLOR } from '../data/elementColors'
 import { useParams } from 'react-router-dom'
 import { loadPalico, type Palico, type PalicoArmor, type PalicoAttack, type PalicoWeapon } from '../data/loaders'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
@@ -88,7 +89,7 @@ function AttackRows({ data, title, a, element }: { data: Palico; title: string; 
       <tr><td colSpan={2} className="tbl-header">{title}</td></tr>
       <Row k={L.attack}>{a.attack}</Row>
       <Row k={L.affinity}>{a.affinity}%</Row>
-      {element && <Row k={L.element}>{element} {a.element}</Row>}
+      {element && <Row k={L.element}><span style={{ color: ELEMENT_COLOR[element], fontWeight: 600 }}>{element}</span> {a.element}</Row>}
     </>
   )
 }

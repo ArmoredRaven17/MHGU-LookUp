@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ELEMENT_COLOR } from '../data/elementColors'
 import { useParams } from 'react-router-dom'
 import { loadArmor } from '../data/loaders'
 import type { ArmorSet } from '../types'
@@ -11,8 +12,7 @@ import { useEquipIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
 
 const RES = ['Fire', 'Water', 'Thunder', 'Ice', 'Dragon']
-// The MHFU LookUp's element colours (as src/data/gunColors.ts uses them for elemental ammo)
-const RES_COLOR = ['#FF4D2E', '#4A9EFF', '#F5C400', '#7FD8F0', '#B060E0']
+
 const CLASSES = [
   { value: 'all', label: 'All armor' },
   { value: 'Blademaster', label: 'Blademaster' },
@@ -72,7 +72,7 @@ function ArmorDetail({ s }: { s: ArmorSet }) {
               <td className="tbl-cell">
                 {RES.map((r, i) => (
                   <div key={r}>
-                    <span style={{ color: RES_COLOR[i], fontWeight: 600 }}>{r}</span>{' '}
+                    <span style={{ color: ELEMENT_COLOR[r], fontWeight: 600 }}>{r}</span>{' '}
                     <span style={{ color: s.res[i] > 0 ? 'var(--positive)' : s.res[i] < 0 ? 'var(--negative)' : undefined }}>
                       {s.res[i] > 0 ? '+' : ''}{s.res[i]}
                     </span>

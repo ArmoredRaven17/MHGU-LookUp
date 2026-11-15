@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { ELEMENT_COLOR } from '../data/elementColors'
 import { ammoColor, coatingColor, shotColor } from '../data/gunColors'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { loadWeaponIndex, loadWeaponClass } from '../data/loaders'
@@ -174,11 +175,16 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
   )
 }
 
+// Each element in its colour (src/data/elementColors.ts), its value beside it
 function elementText(w: Weapon, l: WeaponLevel) {
-  const parts: string[] = []
-  if (w.element) parts.push(`${w.element} ${l.ele}`)
-  if (w.element2) parts.push(`${w.element2} ${l.ele2}`)
-  return parts.join(' / ')
+  const parts: [string, number | undefined][] = []
+  if (w.element) parts.push([w.element, l.ele])
+  if (w.element2) parts.push([w.element2, l.ele2])
+  return (
+    <>{parts.map(([e, v], i) => (
+      <span key={e}>{i > 0 && ' / '}<span style={{ color: ELEMENT_COLOR[e], fontWeight: 600 }}>{e}</span> {v}</span>
+    ))}</>
+  )
 }
 
 function Row({ k, children }: { k: string; children: ReactNode }) {
