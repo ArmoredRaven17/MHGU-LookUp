@@ -117,7 +117,7 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse' }}>
             <thead><tr>
-              {['Lv', 'Name', 'Attack', 'Affinity', w.element ? 'Element' : null, 'Slots', 'Cost'].filter(Boolean).map(h =>
+              {['Lv', 'Name', 'Attack', 'Affinity', w.element ? 'Element' : null, 'Slots'].filter(Boolean).map(h =>
                 <th key={h} className="tbl-header" style={{ textAlign: 'left' }}>{h}</th>)}
             </tr></thead>
             <tbody>
@@ -129,6 +129,24 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
                   <td className="tbl-cell">{l.aff}%</td>
                   {w.element && <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>{elementText(w, l)}</td>}
                   <td className="tbl-cell"><SlotsText n={l.slots} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section title="Cost">
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+            <thead><tr>
+              {['Lv', 'Name', 'Materials'].map(h => <th key={h} className="tbl-header" style={{ textAlign: 'left' }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {w.levels.map(l => (
+                <tr key={l.lv} className="tbl-row" onClick={() => setLv(l.lv)} style={{ cursor: 'pointer', outline: l.lv === lv ? '1px solid var(--accent)' : undefined }}>
+                  <td className="tbl-cell">{l.lv}</td>
+                  <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>{formAt(l.lv).name}</td>
                   <td className="tbl-cell"><Materials mats={l.lv === 1 ? (w.create?.find(c => c.level === 1)?.mats ?? l.cost ?? []) : (l.cost ?? [])} /></td>
                 </tr>
               ))}

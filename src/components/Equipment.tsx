@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import type { Material } from '../types'
 import ItemName from './ItemName'
 import { useTextScale } from '../theme/textScale'
@@ -31,10 +32,12 @@ export function Materials({ mats }: { mats: Material[] }) {
   return (
     <span style={{ fontSize: 13 * scale }}>
       {mats.map((m, i) => (
-        <span key={i} style={{ whiteSpace: 'nowrap' }}>
+        <Fragment key={i}>
           {i > 0 && ', '}
-          {m.length === 3 ? <>{m[0]} materials <span className="text-muted">{m[1]} pts</span></> : <><ItemName name={m[0]} /> <span className="text-muted">×{m[1]}</span></>}
-        </span>
+          <span style={{ whiteSpace: 'nowrap' }}>
+            {m.length === 3 ? <>{m[0]} materials <span className="text-muted">{m[1]} pts</span></> : <><ItemName name={m[0]} /> <span className="text-muted">×{m[1]}</span></>}
+          </span>
+        </Fragment>
       ))}
     </span>
   )
