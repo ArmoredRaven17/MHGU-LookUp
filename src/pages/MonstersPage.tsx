@@ -17,12 +17,19 @@ const SIZE_FILTER = [
   { value: 'small', label: 'Small monsters' },
 ]
 
-// Hit-zone heat map, as the MHFU LookUp colours it: a cell's background by value tier.
-function hzBg(v: number) {
-  if (v >= 66) return '#2e5e2e'   // dark green: very weak
-  if (v >= 46) return '#6b3d00'   // dark orange
-  if (v >= 21) return '#5a5200'   // dark yellow
-  return '#383838'                // dark grey: resistant
+// Hit-zone heat map, as the MHFU LookUp colours it: a cell's background by value tier. Raw and element values run on
+// different ranges (Raven, 2026-11-14: "Element and Raw use similar values numerically, but you will find their ranges
+// are quite different"), so each has its own thresholds, set at the same places in its spread over every hit-zone row
+// in the game: raw (cut/impact/shot) has a median of 35 and 90% at or below 63; element (fire/water/thunder/ice/dragon)
+// a median of 10, 75% at or below 15, 90% at or below 25. Stun and exhaust keep the raw tiers.
+const ELEMENTS = new Set(['fire', 'water', 'thunder', 'ice', 'dragon'])
+const TIERS = { raw: [66, 46, 21], element: [25, 15, 10] }
+function hzBg(v: number, type: string) {
+  const [green, orange, yellow] = ELEMENTS.has(type) ? TIERS.element : TIERS.raw
+  if (v >= green) return '#2e5e2e'   // dark green: very weak
+  if (v >= orange) return '#6b3d00'  // dark orange
+  if (v >= yellow) return '#5a5200'  // dark yellow
+  return '#383838'                   // dark grey: resistant
 }
 
 export default function MonstersPage() {
@@ -132,7 +139,7 @@ function HitZoneSection({ hz, types }: { hz: HitZones; types: string[] }) {
                 <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>{z.name}</td>
                 {types.map(t => {
                   const v = z.row[t] ?? 0
-                  return <td key={t} className="tbl-cell" style={{ textAlign: 'center', background: hzBg(v), color: 'var(--text)' }}>{v}</td>
+                  return <td key={t} className="tbl-cell" style={{ textAlign: 'center', background: hzBg(v, t), color: 'var(--text)' }}>{v}</td>
                 })}
               </tr>
             ))}
