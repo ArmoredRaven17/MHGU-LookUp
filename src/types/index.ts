@@ -182,6 +182,14 @@ export interface HitZones {
   parts: { name: string; stagger: number; break: number | null; extract: string }[]
 }
 
+// A boss slot's stats in a quest, as the game sets them (tools/build_quests.py quest_stats): max HP with the range the
+// quest's Difficulty can roll, the attack and damage-taken multipliers, the part durability multiplier, and each
+// status's threshold after each proc.
+export interface QuestStats {
+  hp: number; hpMin: number; hpMax: number; atk: number; def: number; stagger: number
+  status: [string, number[]][]
+}
+
 export interface Quest {
   id: number
   title: string
@@ -206,7 +214,7 @@ export interface Quest {
   subReward: number
   subHrp: number
   requirements: string[]
-  monsters: [string, string][]   // [monster id, name]
+  monsters: [string, string, QuestStats?][]   // [monster id, name, its stats in this quest]
 }
 
 export type GatherItem = [string, number, number]   // item, quantity, percent per pull

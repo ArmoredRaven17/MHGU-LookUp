@@ -106,9 +106,34 @@ def quest_label(category, stars_text, title):
     return f'{head}: {title}'
 
 
+STATS_DIR = 'C:/MHGU-Extract/quest-stats-research/'
+STATUS = [('ko', 'Stun'), ('exhaust', 'Exhaust'), ('mount', 'Mount'), ('poison', 'Poison'), ('sleep', 'Sleep'),
+          ('paralysis', 'Paralysis'), ('blast', 'Blast')]
+
+
+def quest_stats():
+    """Each boss slot's stats as the game sets them, by the research script (C:/MHGU-Extract/quest-stats-research/
+    quest_stats.py and NOTES.md: em_nando_tbl rows from VitalTblNo / AttackTblNo / OtherTblNo, max HP = trunc(base HP
+    from the monster's dttune +0x38 x the HP row's multiplier), Difficulty's random row offsets, the status thresholds
+    after each proc). Rerun on every build (about 25 s) so it follows the ROM."""
+    import json, subprocess
+    subprocess.run([sys.executable, 'quest_stats.py'], cwd=STATS_DIR, check=True, capture_output=True)
+    return json.load(open(STATS_DIR + 'out/quest_stats.json', encoding='utf8'))
+
+
+def slot_stats(s):
+    """What the page shows (Raven, 2026-11-14: HP with its range, Atk / Def multipliers, status thresholds, stagger)."""
+    m, hp = s['multipliers'], [r['hp'] for r in s.get('hp_range') or []] or [s['hp']]
+    return {'hp': s['hp'], 'hpMin': min(hp), 'hpMax': max(hp), 'atk': m['attack'], 'def': m['defense'],
+            'stagger': m['part_durability'],
+            'status': [[label, s['thresholds'][k]] for k, label in STATUS if s['thresholds'].get(k)]}
+
+
 def build(gmd_path, write, monster_names, item):
     msg = gmd_path('GUI/06_msg/questMessage_eng.gmd')
     groups = board()
+    qs = quest_stats()
+    stats_for = lambda no, em: next((slot_stats(x) for x in qs.get(str(no), []) if x['em'] == em), None)
     PAW_PASS = next(i for i, n in item.items() if n == 'Paw Pass Ticket')
     out, flat = [], []                              # flat: (item id, quest label, slot, quantity, percent)
     for q in questdata.real_quests():
@@ -123,7 +148,7 @@ def build(gmd_path, write, monster_names, item):
             if b['EmType']:
                 em = 'em%03d_%02d' % (b['EmType'] & 0xff, b['EmType'] >> 8)
                 if [em, monster_names.get(em, em)] not in bosses:
-                    bosses.append([em, monster_names.get(em, em)])
+                    bosses.append([em, monster_names.get(em, em)] + ([stats_for(no, em)] if stats_for(no, em) else []))
         req = [msg[48 + q[k]] for k in ('mEntryType_1', 'mEntryType_2') if q[k] and 48 + q[k] < len(msg)]
         p, cid = q['mIsClearParam_1'], q['mClearID_1']
         if p in (1, 2, 4, 8):

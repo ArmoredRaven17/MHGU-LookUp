@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { questPrefix } from '../data/questPrefix'
 import { Link, useParams } from 'react-router-dom'
 import { loadMonsters, loadQuests } from '../data/loaders'
-import type { HitZones, Monster, MonsterRewards, Quest, RewardRow } from '../types'
+import type { HitZones, Monster, MonsterRewards, Quest, QuestStats, RewardRow } from '../types'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import { useMonsterIcons } from '../data/icons'
 import BookmarkButton from '../components/BookmarkButton'
@@ -89,8 +89,9 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
         <Section title="Quests">
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 * scale }}>
             {fought.map(q => (
-              <li key={q.id} style={{ marginBottom: 2 }}>
+              <li key={q.id} style={{ marginBottom: 6 }}>
                 <span className="text-muted">{questPrefix(q.category, q.stars)}:</span> <Link to={`/quests/${q.id}`}>{q.title}</Link>
+                <QuestStatsLine st={q.monsters.find(x => x[0] === m.id)?.[2]} />
               </li>
             ))}
           </ul>
@@ -227,5 +228,35 @@ function RewardSection({ rank, rw }: { rank: string; rw: MonsterRewards }) {
         )}
       </div>
     </Section>
+  )
+}
+
+// A quest's stats for this monster (Raven, 2026-11-14: "the states like the HP Atk Def...etc"; HP "Value with range";
+// Atk / Def multipliers, status thresholds, stagger multiplier). The status thresholds are the game's own sequence, the
+// threshold after each proc, under a toggle named by the statuses themselves.
+function QuestStatsLine({ st }: { st?: QuestStats }) {
+  const scale = useTextScale()
+  if (!st) return null
+  const n = (v: number) => v.toLocaleString()
+  return (
+    <div style={{ fontSize: 12 * scale, marginTop: 1 }}>
+      <span>HP {n(st.hp)}{st.hpMin !== st.hpMax && <span className="text-muted"> ({n(st.hpMin)}–{n(st.hpMax)})</span>}</span>
+      <span className="text-muted"> · </span>Atk ×{st.atk}
+      <span className="text-muted"> · </span>Def ×{st.def}
+      <span className="text-muted"> · </span>Stagger ×{st.stagger}
+      {st.status.length > 0 && (
+        <details style={{ marginTop: 2 }}>
+          <summary className="text-muted" style={{ cursor: 'pointer' }}>{st.status.map(([k]) => k).join(' · ')}</summary>
+          <table style={{ borderCollapse: 'collapse', marginTop: 2 }}><tbody>
+            {st.status.map(([k, v]) => (
+              <tr key={k} className="tbl-row">
+                <td className="tbl-cell text-muted" style={{ whiteSpace: 'nowrap', verticalAlign: 'top' }}>{k}</td>
+                <td className="tbl-cell">{v.map(n).join(', ')}</td>
+              </tr>
+            ))}
+          </tbody></table>
+        </details>
+      )}
+    </div>
   )
 }
