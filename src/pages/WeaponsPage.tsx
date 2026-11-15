@@ -113,7 +113,7 @@ function WeaponDetail({ cls, w, byRow, sharpness }: {
         </Section>
       )}
 
-      <Section title="All Levels">
+      <Section title="Stats">
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse' }}>
             <thead><tr>
