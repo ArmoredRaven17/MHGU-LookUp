@@ -22,9 +22,12 @@ joined by title and type -- `python tools/check_quests.py` re-runs every count:
 Requirements: mEntryType_1 / _2 -> questMessage_eng.gmd string 48 + code (0 "None", "HR n and up", "... only",
   48 "Two players max").
 Main monsters: every boss slot's mEmType (the quest's large monsters, targets and the others), named as the
-  Monsters tab names them; the Randomizer's targets are among them in every joined quest. Which slots are the
-  targets is in mIsClearParam / mClearID (1 = hunt monster N, 3 = all large monsters, ...): not decoded, the
-  objective text says it.
+  Monsters tab names them; the Randomizer's targets are among them in every joined quest.
+Main target (`target`, the list's icon; Raven, 2026-11-14: "an icon for the main target"): mIsClearParam_1 with
+  mClearID_1, LOCATED against the objective text over the 1,479 quests: 1 hunt/slay, 2 capture, 4 slay a total of
+  (mClearID_2 the second monster), 8 wound/break -- mClearID_1 a monster key (em + variant << 8, + 0x1000 small,
+  every one of them a Monsters tab id); 5 deliver item mClearID_1; 7 survive or deliver a Paw Pass Ticket; 3 hunt all
+  large monsters (no one target: the first boss slot's monster is used); 6 earn Wycademy Points (no target).
 Rewards: the quest's link file (loc/quest/questLink/questLink_NNNNNNN.qdl) names five rRem tables, in the order of
   mhgu.db's reward slots A, B, C, D, Sub (rem_000000 = none); each is in loc/arc/quest/qNNNNNNN.arc: f32 1.0, u32 1,
   +8 u8 flag, +9 u8 count, then from +0x18 count x [u16 item, u8 quantity, u8 percent]. Where the flag is 1, the
@@ -93,6 +96,7 @@ def stars(lv):
 def build(gmd_path, write, monster_names, item):
     msg = gmd_path('GUI/06_msg/questMessage_eng.gmd')
     groups = board()
+    PAW_PASS = next(i for i, n in item.items() if n == 'Paw Pass Ticket')
     out, flat = [], []                              # flat: (item id, quest label, slot, quantity, percent)
     for q in questdata.real_quests():
         no = q['mQuestNo']
@@ -106,6 +110,17 @@ def build(gmd_path, write, monster_names, item):
                 if [em, monster_names.get(em, em)] not in bosses:
                     bosses.append([em, monster_names.get(em, em)])
         req = [msg[48 + q[k]] for k in ('mEntryType_1', 'mEntryType_2') if q[k] and 48 + q[k] < len(msg)]
+        p, cid = q['mIsClearParam_1'], q['mClearID_1']
+        if p in (1, 2, 4, 8):
+            target = {'monster': '%s%03d_%02d' % ('ems' if cid & 0x1000 else 'em', cid & 0xFF, (cid >> 8) & 0xF)}
+        elif p == 5:
+            target = {'item': cid}
+        elif p == 7:
+            target = {'item': PAW_PASS}
+        elif p == 3 and bosses:
+            target = {'monster': bosses[0][0]}
+        else:
+            target = None
         out.append({
             'id': no, 'title': t[0], 'client': t[1], 'desc': t[2], 'others': t[3], 'objective': t[4],
             'failure': t[5], 'subquest': t[6] if t[6] not in ('None', '') else '',
@@ -114,7 +129,7 @@ def build(gmd_path, write, monster_names, item):
             'locale': msg[MAP[q['mMapNo']]] if q['mMapNo'] in MAP else '',
             'time': q['mQuestTime'], 'fee': q['mContract'], 'reward': q['mRemMoney'],
             'hrp': q['mClearRemHuterPoint'], 'subReward': q['mSubRemMoney'], 'subHrp': q['mSubRemHuterPoint'],
-            'requirements': req, 'monsters': bosses, 'rewards': rewards(no, item, flat, f"{t[0]} ({BAND.get(no // 10000, 'Other')} {stars(q['mQuestLv'])})".replace(' )', ')')), '_map': q['mMapNo'] % 100,
+            'requirements': req, 'monsters': bosses, 'target': target, 'rewards': rewards(no, item, flat, f"{t[0]} ({BAND.get(no // 10000, 'Other')} {stars(q['mQuestLv'])})".replace(' )', ')')), '_map': q['mMapNo'] % 100,
             '_rankfile': {0: 'low', 1: 'low', 3: 'high', 5: 'g'}.get(q['mMonsterLv']),
         })
     out.sort(key=lambda x: x['order'])

@@ -176,6 +176,7 @@ export interface Quest {
   desc: string
   others: string          // the quest text's other monsters
   objective: string
+  target: { monster: string } | { item: number } | null   // the main target (its icon): tools/build_quests.py
   failure: string
   subquest: string
   category: string        // Village, Hub, Arena, Event, Special Permit, Training

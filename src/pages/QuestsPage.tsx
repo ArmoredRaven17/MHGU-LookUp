@@ -7,6 +7,7 @@ import BookmarkButton from '../components/BookmarkButton'
 import NotesBox from '../components/NotesBox'
 import GameText from '../components/GameText'
 import { useTextScale } from '../theme/textScale'
+import { useItemIcons, useMonsterIcons } from '../data/icons'
 
 const CATEGORIES = ['Village', 'Hub', 'Special Permit', 'Arena', 'Event', 'Training']
 const RANKS = ['Village Low Rank', 'Low Rank', 'High Rank', 'G Rank']
@@ -23,15 +24,16 @@ export default function QuestsPage() {
 
   // Village, Hub and Special Permit quests are grouped by stars (Permit level); the rest by rank.
   const byRank = cat === 'Event' || cat === 'Arena' || cat === 'Training'
+  const icon = useTargetIcon()
   const entries = useMemo(() => quests
     .filter(q => q.category === cat)
     .sort((a, b) => (byRank ? RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank) : a.level - b.level) || a.order - b.order)
     .map(q => ({
-      key: String(q.id), label: q.title,
+      key: String(q.id), label: q.title, icon: icon(q),
       sub: [q.key ? 'Key Quest' : '', q.locale, byRank ? '' : q.rank].filter(Boolean).join(' · '),
       group: byRank ? q.rank || cat : q.stars,
       search: q.objective + ' ' + q.monsters.map(m => m[1]).join(' '),
-    })), [quests, cat, byRank])
+    })), [quests, cat, byRank, icon])
 
   return (
     <ListPage entries={entries} base="/quests" selected={id} placeholder="Search quests, objectives or monsters…"
@@ -40,6 +42,14 @@ export default function QuestsPage() {
       {quest && <QuestDetail key={quest.id} q={quest} />}
     </ListPage>
   )
+}
+
+// The main target's icon: the monster's, or the item's for a delivery (tools/build_quests.py `target`).
+function useTargetIcon() {
+  const monster = useMonsterIcons()
+  const items = useItemIcons()
+  return useMemo(() => (q: Quest) => !q.target ? undefined
+    : 'monster' in q.target ? monster(q.target.monster) : items.byId(q.target.item), [monster, items])
 }
 
 function Row({ k, children }: { k: string; children: ReactNode }) {
@@ -53,11 +63,12 @@ function Row({ k, children }: { k: string; children: ReactNode }) {
 
 function QuestDetail({ q }: { q: Quest }) {
   const scale = useTextScale()
+  const targetIcon = useTargetIcon()
   const path = `/quests/${q.id}`
   const z = (n: number) => `${n.toLocaleString()}z`
   return (
     <div style={{ maxWidth: 760 }}>
-      <DetailHeader title={q.title} sub={[q.category, q.stars, q.rank, q.key ? 'Key Quest' : ''].filter(Boolean).join(' · ')}>
+      <DetailHeader title={q.title} icon={targetIcon(q)} sub={[q.category, q.stars, q.rank, q.key ? 'Key Quest' : ''].filter(Boolean).join(' · ')}>
         <BookmarkButton bookmark={{ type: 'quest', id: String(q.id), name: q.title, path }} />
       </DetailHeader>
 
