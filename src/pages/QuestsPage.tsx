@@ -22,18 +22,36 @@ export default function QuestsPage() {
   const quest = quests.find(q => String(q.id) === id)
   useEffect(() => { if (quest) setCat(quest.category) }, [quest])
 
-  // Village, Hub and Special Permit quests are grouped by stars (Permit level); the rest by rank.
+  // Village and Hub quests are grouped by stars; Special Permits by monster (below); the rest by rank.
   const byRank = cat === 'Event' || cat === 'Arena' || cat === 'Training'
   const icon = useTargetIcon()
+  // Special Permits are listed by monster (Raven, 2026-11-14): the quest number is 40XXYY, XX the Deviant (01..18, the
+  // game's order) and YY the permit level. The quest board records no group, so each XX is named by the monster most
+  // of its quests target (its level 6 quests earn Wycademy Points, some levels add another monster).
+  const permit = cat === 'Special Permit'
+  const permitName = useMemo(() => {
+    const votes = new Map<number, Map<string, number>>(), names = new Map<string, string>()
+    for (const q of quests) {
+      if (q.category !== 'Special Permit' || !q.target || !('monster' in q.target)) continue
+      const g = Math.floor(q.id / 100) % 100, m = q.target.monster
+      const v = votes.get(g) ?? new Map<string, number>()
+      v.set(m, (v.get(m) ?? 0) + 1); votes.set(g, v)
+      const n = q.monsters.find(x => x[0] === m)?.[1]
+      if (n) names.set(m, n)
+    }
+    return new Map([...votes].map(([g, v]) => [g, names.get([...v].sort((a, b) => b[1] - a[1])[0][0]) ?? '']))
+  }, [quests])
+  const pgroup = (q: Quest) => Math.floor(q.id / 100) % 100
   const entries = useMemo(() => quests
     .filter(q => q.category === cat)
-    .sort((a, b) => (byRank ? RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank) : a.level - b.level) || a.order - b.order)
+    .sort((a, b) => (permit ? pgroup(a) - pgroup(b) : 0)
+      || (byRank ? RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank) : a.level - b.level) || a.order - b.order)
     .map(q => ({
       key: String(q.id), label: q.title, icon: icon(q),
-      sub: [q.key ? 'Key Quest' : '', q.locale, byRank ? '' : q.rank].filter(Boolean).join(' · '),
-      group: byRank ? q.rank || cat : q.stars,
+      sub: [permit ? q.stars : '', q.key ? 'Key Quest' : '', q.locale, byRank ? '' : q.rank].filter(Boolean).join(' · '),
+      group: permit ? permitName.get(pgroup(q)) || q.stars : byRank ? q.rank || cat : q.stars,
       search: q.objective + ' ' + q.monsters.map(m => m[1]).join(' '),
-    })), [quests, cat, byRank, icon])
+    })), [quests, cat, byRank, icon, permit, permitName])
 
   return (
     <ListPage entries={entries} base="/quests" selected={id} placeholder="Search quests, objectives or monsters…"
