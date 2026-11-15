@@ -126,7 +126,17 @@ def slot_stats(s):
     m, hp = s['multipliers'], [r['hp'] for r in s.get('hp_range') or []] or [s['hp']]
     return {'hp': s['hp'], 'hpMin': min(hp), 'hpMax': max(hp), 'atk': m['attack'], 'def': m['defense'],
             'stagger': m['part_durability'],
-            'status': [[label, s['thresholds'][k]] for k, label in STATUS if s['thresholds'].get(k)]}
+            'status': [[label, *status_ism(s['blocks'][k], m['status'] if k in ('poison', 'sleep', 'paralysis', 'blast')
+                                             else m[k], s['thresholds'][k])]
+                       for k, label in STATUS if (s.get('blocks') or {}).get(k) and s['thresholds'].get(k)]}
+
+
+def status_ism(block, m, ladder):
+    """[initial, step, max] (Raven, 2026-11-15: "list the initial, step, max"): initial and max are the first and last of
+    the thresholds the research script computes as the code does (quest_stats.py ladder, f32 like the game), the step the
+    increase scaled by the quest's multiplier, which can be fractional (Blast 55 x 1.3 = 71.5)."""
+    f = lambda x: struct.unpack('<f', struct.pack('<f', x))[0]
+    return [ladder[0], float('%.6g' % f(f(m) * f(block['increase']))), ladder[-1]]
 
 
 def build(gmd_path, write, monster_names, item):

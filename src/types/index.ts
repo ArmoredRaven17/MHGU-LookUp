@@ -184,10 +184,10 @@ export interface HitZones {
 
 // A boss slot's stats in a quest, as the game sets them (tools/build_quests.py quest_stats): max HP with the range the
 // quest's Difficulty can roll, the attack and damage-taken multipliers, the part durability multiplier, and each
-// status's threshold after each proc.
+// status's initial threshold, step per proc and max.
 export interface QuestStats {
   hp: number; hpMin: number; hpMax: number; atk: number; def: number; stagger: number
-  status: [string, number[]][]
+  status: [string, number, number, number][]   // [name, initial, step, max]
 }
 
 export interface Quest {
