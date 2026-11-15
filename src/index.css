@@ -54,6 +54,18 @@ html, body, #root {
   font-display: swap;
 }
 
+/* ── Form controls and clipped text: MHFUFont is a short font ───────────────
+   READ BEFORE ADDING A <select>, <input> OR ANY CLIPPED TEXT. MHFUFont's own line box is 0.86em (ascent 727 +
+   descent 136 per 1000 units), against ~1.2em for most fonts, so text at line-height: normal gets a box that only
+   just holds its glyphs. Wherever that box CLIPS -- a <select> (browsers ignore line-height on it), an <input>, or a
+   span with overflow: hidden / text-overflow: ellipsis -- the descenders (g, y, p) get cut at some text scales.
+   Raven, 2026-11-14, on the Quests filter showing "Village" with its g cut: "This issue with the drop downs has been
+   pretty common". So: form controls get the room below (min-height scales with the text: em), and any text that is
+   clipped takes the class .clip-text. Do not set a fixed height on a control. */
+select, input, textarea { line-height: 1.4; }
+select, input { min-height: calc(1.4em + 10px); }
+.clip-text { line-height: 1.4; }
+
 /* ── Scrollbars ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }

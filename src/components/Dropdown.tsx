@@ -40,7 +40,7 @@ export default function Dropdown({ value, options, onChange, style }: {
         whiteSpace: 'nowrap',
       }}>
         <Swatch option={current} />
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', flex: style?.width != null ? 1 : undefined }}>{current?.label ?? value}</span>
+        <span className="clip-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', flex: style?.width != null ? 1 : undefined }}>{current?.label ?? value}</span>
         <span style={{ color: 'var(--muted)', fontSize: 11 * scale, flexShrink: 0 }}>{open ? '▴' : '▾'}</span>
       </button>
 
@@ -68,7 +68,7 @@ export default function Dropdown({ value, options, onChange, style }: {
                 color: o.value === value ? 'var(--accent)' : 'var(--text)',
               }}>
                 <Swatch option={o} />
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{o.label}</span>
+                <span className="clip-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{o.label}</span>
               </div>
             </div>
           ))}
