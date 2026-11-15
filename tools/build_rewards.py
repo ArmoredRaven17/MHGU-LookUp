@@ -49,7 +49,29 @@ def break_parts(arc_data, arc_ents, mid):
     return out
 
 
-def build(monster_ids, item_name):
+def band_labels(title):
+    """{(monster id, rank, band): 'I-IV' | 'G3-G5' | 'EX'}: the levels of the Special Permit quests whose boss slot holds
+    that monster with that band (mEmSubType % 3) at that reward rank (mHagiLv), named as the quests' own titles name
+    them ("Dreadqueen G1: Capture" -> G1), first to last (Raven, 2026-11-14: "By title levels (I-IV, G1-G2, EX)")."""
+    import questdata
+    seen = {}
+    for q in questdata.real_quests():
+        if q['mQuestNo'] // 10000 != 4 or q['mHagiLv'] not in RANK:
+            continue
+        t = title(q['mQuestNo'])
+        if ':' not in t:
+            continue
+        level = t.split(':')[0].split()[-1]
+        for b in q['boss']:
+            if not b['EmType']:
+                continue
+            mid = 'em%03d_%02d' % (b['EmType'] & 0xFF, b['EmType'] >> 8)
+            key = (mid, RANK[q['mHagiLv']], b['EmSubType'] % 3)
+            seen.setdefault(key, {})[q['mQuestLv']] = level
+    return {k: (v[min(v)] if len(v) == 1 else f'{v[min(v)]}–{v[max(v)]}') for k, v in seen.items()}
+
+
+def build(monster_ids, item_name, title=None):
     """{monster id: {rank: groups}}; groups: carve/tail/mine [{band, rows}], shiny/gather [{slot, rows}],
     capture [{band, rows}], break [{n, band, name, rows}]; a row is [item id, item name, quantity, percent]."""
     review = json.load(open(MV + 'zone-review.json', encoding='utf8'))
@@ -100,4 +122,25 @@ def build(monster_ids, item_name):
                 else:
                     n = int(label.split()[1])
                     r.setdefault('break', []).append({'n': n, 'band': band, 'name': break_name(mid, n), 'rows': rows(l)})
+    # a Deviant's level bands, named by the Special Permit levels that use them
+    if title:
+        labels = band_labels(title)
+        # only a monster with level bands (a Deviant: some group holds more than one band) is labelled -- the plain
+        # monsters a Special Permit quest adds (Rathians beside Dreadqueen) share its quests but have no bands
+        deviants = {mid for mid, ranks in out.items() for groups in ranks.values() for g, lists in groups.items()
+                    if len({l.get('band') for l in lists if 'band' in l}) > 1}
+        for mid, ranks in out.items():
+            # a Deviant's shiny drop is slot 10 + band (0xac030), 10 + 2 x band for Nightcloak Malfestio, and no band
+            # for Redhelm Arzuros (C:/MHGU-Extract/rewards-research/)
+            if mid in deviants and mid != 'em060_04':
+                for groups in ranks.values():
+                    for l in groups.get('shiny', []):
+                        step = 2 if mid == 'em079_04' else 1
+                        if (l['slot'] - 10) % step == 0:
+                            l['band'] = (l['slot'] - 10) // step
+            for rank, groups in ranks.items():
+                for g, lists in groups.items():
+                    for l in lists:
+                        if mid in deviants and 'band' in l and (mid, rank, l['band']) in labels:
+                            l['levels'] = labels[(mid, rank, l['band'])]
     return out

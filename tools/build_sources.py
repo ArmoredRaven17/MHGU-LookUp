@@ -89,7 +89,11 @@ def combinations():
     return out
 
 
-def build(write, monster_names, gathering, quests, item_name):
+GROUP_NAMES = {'carve': 'Carve', 'tail': 'Tail Carve', 'mine': 'Mine', 'shiny': 'Shiny Drop', 'gather': 'Gather',
+               'capture': 'Capture'}      # Raven's names for the monster reward groups
+
+
+def build(write, monster_names, gathering, quests, item_name, rewards=None):
     src = {}
     add = lambda item, s: src.setdefault(item, []).append(s)
     combos = combinations()
@@ -112,44 +116,19 @@ def build(write, monster_names, gathering, quests, item_name):
     for item, label, slot, q, pct in quests:
         add(item, ['Quest reward', label, (f'Reward {slot}' if slot != 'Sub' else 'Subquest reward') + x(q), pct])
 
-    # carves
-    d, _ = None, None
-    import glob, os
-    for path in sorted(glob.glob(ROM + 'arc/enemy/em*.arc')):
-        em = os.path.basename(path)[:-4]
+    # monsters: the lists build_rewards.py reads for the Monsters page, named as Raven named them there (Raven,
+    # 2026-11-14: "Use the same names"): the group, a Deviant's band by its Special Permit levels, a break by its parts
+    for em, ranks in (rewards or {}).items():
         name = monster_names.get(em)
         if not name:
             continue
-        a, ents = mh.arc_entries(path)
-        h = mh.thash('rHagi')
-        for e in ents:
-            if e[1] != h:
-                continue
-            s = int(e[0].split(chr(92))[-1][6])
-            if s not in RANK:
-                continue
-            for slot, l in hagi_lists(mh.arc_extract(a, e)):
-                for it, q, p in l:
-                    add(it, ['Monster', name, f'{RANK[s]} · {carve_kind(slot)}' + (f' ×{q}' if q > 1 else ''), p])
-
-    # capture and breaks
-    a, ents = mh.arc_entries(ROM + 'loc/arc/result.arc')
-    h = mh.thash('rBui')
-    for e in ents:
-        if e[1] != h:
-            continue
-        s = int(e[0].split(chr(92))[-1][5])
-        if s not in RANK:
-            continue
-        for em, lists in bui_records(mh.arc_extract(a, e)):
-            name = monster_names.get(em)
-            if not name:
-                continue
-            nbands = len({b for (_, b), _ in lists})
-            for (label, band), l in lists:
-                tier = f' · tier {band + 1}' if nbands > 1 else ''
-                for it, q, p in l:
-                    add(it, ['Monster', name, f'{RANK[s]} · {label}{tier}' + (f' ×{q}' if q > 1 else ''), p])
+        for rank, groups in ranks.items():
+            for g, lists in groups.items():
+                for l in lists:
+                    label = 'Break' + (f' · {l["name"]}' if l.get('name') else '') if g == 'break' else GROUP_NAMES[g]
+                    tail = f' · {l["levels"]}' if l.get('levels') else ''
+                    for it, _n, q, p in l['rows']:
+                        add(it, ['Monster', name, f'{rank} · {label}{tail}{x(q)}', p])
 
     out = {}
     for k, v in src.items():                         # the same source twice (two points sharing a list) once

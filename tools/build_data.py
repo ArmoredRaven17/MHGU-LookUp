@@ -327,7 +327,8 @@ def monsters():
     mons = load('monsters.json')['monsters']
     hzsrc = build_hitzones.Source()
     import build_rewards
-    rewards = build_rewards.build({m['id'] for m in mons if m['name']}, item_names())
+    rewards = build_rewards.build({m['id'] for m in mons if m['name']}, item_names(),
+                                  lambda no: (gmd_path(f'quest/questData/questData_{no:07d}_eng.gmd') or [''])[0])
     classes, levels = load('monster-classes.json')['classes'], load('quest-levels.json')
     level_names = levels['levelNames']
     out = []
@@ -385,7 +386,9 @@ def gathering(reachable):
 def sources(monster_names, gathered, rewarded):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import build_sources
-    build_sources.build(write, monster_names, gathered, rewarded, item_names())
+    with open(os.path.join(OUT, 'monsters.json'), encoding='utf8') as f:      # written by monsters() above
+        rewards = {m['id']: m['rewards'] for m in json.load(f)['monsters'] if m.get('rewards')}
+    build_sources.build(write, monster_names, gathered, rewarded, item_names(), rewards)
 
 
 # ── Canteen ─────────────────────────────────────────────────────────────────────────────────

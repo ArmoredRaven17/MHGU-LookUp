@@ -46,7 +46,7 @@ export default function ItemsPage() {
               {item.buy != null && <>Buy {item.buy.toLocaleString()}z · </>}Sell {item.sell.toLocaleString()}z · Carry up to {item.carry}
             </p>
           </Section>
-          <Section title="Where to Get It">
+          <Section title="How to obtain">
             <Sources list={sources[String(item.id)] ?? []} />
           </Section>
           <Section title="Notes">

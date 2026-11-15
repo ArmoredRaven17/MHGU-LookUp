@@ -165,9 +165,9 @@ export interface Monster {
 export type RewardRow = [number, string, number, number]        // item id, item name, quantity, percent
 // Every list the ROM has (tools/build_rewards.py). band: a Deviant's level band (the quest's boss mEmSubType % 3);
 // slot: the rHagi slot of a shiny drop / gathered list (some monsters have several, picked by their own code).
-export interface BandList { band: number; rows: RewardRow[] }
-export interface SlotList { slot: number; rows: RewardRow[] }
-export interface BreakList { n: number; band: number; name: string | null; rows: RewardRow[] }
+export interface BandList { band: number; levels?: string; rows: RewardRow[] }   // levels: the Special Permit levels using this band
+export interface SlotList { slot: number; band?: number; levels?: string; rows: RewardRow[] }
+export interface BreakList { n: number; band: number; levels?: string; name: string | null; rows: RewardRow[] }
 export interface MonsterRewards {
   carve?: BandList[]; tail?: BandList[]; mine?: BandList[]; capture?: BandList[]
   shiny?: SlotList[]; gather?: SlotList[]

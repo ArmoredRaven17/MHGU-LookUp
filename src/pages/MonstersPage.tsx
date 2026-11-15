@@ -85,7 +85,7 @@ function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
       </DetailHeader>
 
       {fought.length > 0 && (
-        <Section title="Fought In">
+        <Section title="Quests">
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 * scale }}>
             {fought.map(q => (
               <li key={q.id} style={{ marginBottom: 2 }}>
@@ -194,21 +194,31 @@ function RewardRows({ rows }: { rows: RewardRow[] }) {
 }
 function RewardSection({ rank, rw }: { rank: string; rw: MonsterRewards }) {
   const scale = useTextScale()
-  const shown = GROUPS.filter(([k]) => rw[k]?.length === 1)
-  // breaks: only where the rank has a single band (no Deviant bands) and the break's parts are known
-  const breaks = (rw.break ?? []).every(b => b.band === (rw.break ?? [])[0]?.band) ? (rw.break ?? []).filter(b => b.name) : []
+  // A group shows when it has one list, or when every list is a Deviant band named by its Special Permit levels
+  // (Raven, 2026-11-14: "By title levels (I-IV, G1-G2, EX)"); other multiple lists (extra shiny drops) wait.
+  const readable = (ls: { levels?: string }[] | undefined) => !!ls?.length && (ls.length === 1 || ls.every(l => l.levels))
+  const shown = GROUPS.filter(([k]) => readable(rw[k]))
+  const brk = rw.break ?? []
+  const breaks = brk.every(b => b.name) && (new Set(brk.map(b => b.band)).size === 1 || brk.every(b => b.levels)) ? brk : []
   if (!shown.length && !breaks.length) return null
   const head = (t: string) => <div style={{ fontSize: 12 * scale, fontWeight: 600, marginBottom: 4 }}>{t}</div>
+  const sub = (t: string) => <div className="text-muted" style={{ fontSize: 12 * scale, marginBottom: 2 }}>{t}</div>
   return (
     <Section title={rank}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, alignItems: 'flex-start' }}>
-        {shown.map(([k, label]) => <div key={k}>{head(label)}<RewardRows rows={rw[k]![0].rows} /></div>)}
+        {shown.map(([k, label]) => (
+          <div key={k}>
+            {head(label)}
+            {rw[k]!.length === 1 ? <RewardRows rows={rw[k]![0].rows} />
+              : rw[k]!.map((l, i) => <div key={i} style={{ marginBottom: 6 }}>{sub(l.levels!)}<RewardRows rows={l.rows} /></div>)}
+          </div>
+        ))}
         {breaks.length > 0 && (
           <div>
             {head('Break')}
             {breaks.map((b, i) => (
               <div key={i} style={{ marginBottom: 6 }}>
-                <div className="text-muted" style={{ fontSize: 12 * scale, marginBottom: 2 }}>{b.name}</div>
+                {sub(b.levels && new Set(brk.map(x => x.band)).size > 1 ? `${b.name} — ${b.levels}` : b.name!)}
                 <RewardRows rows={b.rows} />
               </div>
             ))}
