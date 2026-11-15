@@ -32,7 +32,7 @@ export default function Layout() {
           <span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 15 * scale, whiteSpace: 'nowrap' }}>MHGU LookUp</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'stretch', flex: 1, overflowX: 'auto' }}>
+        <div className="nav-tabs" style={{ display: 'flex', alignItems: 'stretch', flex: 1, overflowX: 'auto' }}>
           {NAV.map(item => (
             <NavLink key={item.path} to={`/${item.path}`}
                      title={item.soon ? `${item.label} (coming soon)` : item.label}

@@ -59,6 +59,9 @@ html, body, #root {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+/* the title bar's tab strip: a taller scroll bar (Raven, 2026-11-14) */
+.nav-tabs::-webkit-scrollbar { height: 15px; }
+.nav-tabs::-webkit-scrollbar-thumb { border-radius: 7px; }
 
 /* ── Table helpers ──────────────────────────────────────────────────── */
 .tbl-header {
