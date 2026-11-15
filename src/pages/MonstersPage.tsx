@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { loadMonsters, loadQuests } from '../data/loaders'
-import type { HitZones, Monster, MonsterRewards, Quest } from '../types'
+import type { HitZones, Monster, MonsterRewards, Quest, RewardRow } from '../types'
 import ListPage, { DetailHeader, Section } from '../components/ListPage'
 import { useMonsterIcons } from '../data/icons'
 import BookmarkButton from '../components/BookmarkButton'
@@ -171,34 +171,49 @@ function HitZoneSection({ hz, types }: { hz: HitZones; types: string[] }) {
 }
 
 // Carves and drops, one section per rank (Raven, 2026-11-14), the groups named and ordered as Raven gave them. A group
-// shows only where the rank has one list for it: several lists (a Deviant's level bands, some monsters' extra shiny
-// drops) are not told apart yet, and part breaks wait for the ROM's break-number -> part link.
+// shows only where the rank has one list for it: a Deviant's level bands and some monsters' extra shiny drops wait for
+// their labels. Breaks are listed under Break by the names of the parts they come from (the Parts table's names).
 const RANKS = ['Low Rank', 'High Rank', 'G Rank']
-const GROUPS: [keyof MonsterRewards, string][] = [
+const GROUPS: [Exclude<keyof MonsterRewards, 'break'>, string][] = [
   ['carve', 'Carve'], ['tail', 'Tail Carve'], ['mine', 'Mine'], ['shiny', 'Shiny Drop'], ['gather', 'Gather'], ['capture', 'Capture'],
 ]
+function RewardRows({ rows }: { rows: RewardRow[] }) {
+  const scale = useTextScale()
+  return (
+    <table style={{ borderCollapse: 'collapse', fontSize: 13 * scale }}><tbody>
+      {rows.map(([id, name, q, p], i) => (
+        <tr key={i} className="tbl-row">
+          <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>
+            <Link to={`/items/${id}`}><ItemName name={name} id={id} /></Link>{q > 1 && <span className="text-muted"> ×{q}</span>}
+          </td>
+          <td className="tbl-cell" style={{ textAlign: 'right' }}>{p}%</td>
+        </tr>
+      ))}
+    </tbody></table>
+  )
+}
 function RewardSection({ rank, rw }: { rank: string; rw: MonsterRewards }) {
   const scale = useTextScale()
-  const shown = GROUPS.filter(([k]) => { const l = rw[k] as unknown[] | undefined; return l?.length === 1 })
-  if (!shown.length) return null
+  const shown = GROUPS.filter(([k]) => rw[k]?.length === 1)
+  // breaks: only where the rank has a single band (no Deviant bands) and the break's parts are known
+  const breaks = (rw.break ?? []).every(b => b.band === (rw.break ?? [])[0]?.band) ? (rw.break ?? []).filter(b => b.name) : []
+  if (!shown.length && !breaks.length) return null
+  const head = (t: string) => <div style={{ fontSize: 12 * scale, fontWeight: 600, marginBottom: 4 }}>{t}</div>
   return (
     <Section title={rank}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, alignItems: 'flex-start' }}>
-        {shown.map(([k, label]) => (
-          <div key={k}>
-            <div style={{ fontSize: 12 * scale, fontWeight: 600, marginBottom: 4 }}>{label}</div>
-            <table style={{ borderCollapse: 'collapse', fontSize: 13 * scale }}><tbody>
-              {(rw[k] as MonsterRewards['carve'])![0].map(([id, name, q, p], i) => (
-                <tr key={i} className="tbl-row">
-                  <td className="tbl-cell" style={{ whiteSpace: 'nowrap' }}>
-                    <Link to={`/items/${id}`}><ItemName name={name} id={id} /></Link>{q > 1 && <span className="text-muted"> ×{q}</span>}
-                  </td>
-                  <td className="tbl-cell" style={{ textAlign: 'right' }}>{p}%</td>
-                </tr>
-              ))}
-            </tbody></table>
+        {shown.map(([k, label]) => <div key={k}>{head(label)}<RewardRows rows={rw[k]![0].rows} /></div>)}
+        {breaks.length > 0 && (
+          <div>
+            {head('Break')}
+            {breaks.map((b, i) => (
+              <div key={i} style={{ marginBottom: 6 }}>
+                <div className="text-muted" style={{ fontSize: 12 * scale, marginBottom: 2 }}>{b.name}</div>
+                <RewardRows rows={b.rows} />
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </Section>
   )

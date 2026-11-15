@@ -3,17 +3,19 @@
 Each source is [kind, where, detail, percent]. Read from the ROM:
 - Gathering: the gathering points (build_gathering.py), per locale, rank and area.
 - Quest rewards: each quest's reward tables (build_quests.py): slots A, B, C, D, Sub.
-- Carves: rHagi enemy/hagi/hagi_s<N>_emMMM_VV in arc/enemy/emMMM_VV.arc. s1 Low Rank, s2 High Rank, s4 G Rank (s0
-  and s3: not identified, left out). +6: 20 slots, each the entry index its list starts at (0xff = none; slot 0
-  starts at entry 0); entries from +26 are [u8 percent, u8 quantity, u16 item], a list ends at percent 0xff.
-  Slot groups, located against mhgu.db's hunting_rewards (every list matches): 0-1 carve, 2-4 tail carve, 5-7
-  mining on the monster, 8-13 shiny drop, 14-16 gathered from the monster. A Deviant's extra slots in a group are
-  its level bands; another monster's slots 9-13 are its other shiny drops.
+- Carves: rHagi enemy/hagi/hagi_s<N>_emMMM_VV in arc/enemy/emMMM_VV.arc. s1 Low Rank, s2 High Rank, s4 G Rank (the
+  quest's mHagiLv; s0 / s3 are mHagiLv 0 / 3, used by 9 and 160 quests, left out). Slot s (1..19) starts at the entry
+  index in file byte 4+s (0xff = none); entries from +26 are [u8 percent, u8 quantity, u16 item], a list ends at
+  percent 0xff. The game picks slot 1+band (carve), 4+band (tail carve), 7+band (mining), 10+k+band (shiny drop) and
+  16+k (gathered from it) -- band = the quest's boss mEmSubType % 3 (0x5c8b4), the Deviants' level bands.
+  Traced in C:/MHGU-Extract/rewards-research/ (0xab9e0, 0xac030, 0xabd4c). This file used to read slots from byte 6
+  with slot 0 at entry 0, which missed each Deviant's band-1 carve list (fixed 2026-11-14).
 - Capture and part breaks: rBui quest/bui/bui_s<N> in loc/arc/result.arc (s1 Low, s2 High, s4 G): f32 2.0, u32
   record count, records of equal size: +0 u16 monster (low byte em, high byte variant, as the quests' mEmType), +2
-  up to 18 [u8 code, u8 n] (code = 10 x part + band), then from +38 lists of [u8 percent, u8 quantity, u16 item]
-  ending 0xff. Per band: the capture list, then one break list per part of that band, in the header's order.
-  Located against mhgu.db (capture and break lists). The game numbers parts; it never names them.
+  up to 18 [u8 code, u8 n], then from +38 one list per code, in code order, [u8 percent, u8 quantity, u16 item]
+  ending 0xff (all 470 records: as many lists as codes). code = 10 x (N + 1) + band: N 0 is the capture, N 1..5 the
+  breaks (0x3a661c, table 0x1623f46); a break's body part is in the monster's rEnemyDtBaseParts (build_rewards.py).
+  Located against mhgu.db (capture and break lists).
 - Combining: table/itemPreData.itp (24-byte rows: u16 index, u32 ingredient, u32 ingredient, u32 result, u8 success
   percent, u8 amount type -> table/itemPreTypeData.ipt). All 183 recipes and rates match mhgu.db; the amount
   types do not line up with mhgu.db's amounts and are not shown yet.
@@ -28,7 +30,7 @@ import mh                                         # noqa: E402
 
 ROM = 'C:/MHGU-ROM/romfs/nativeNX/'
 RANK = {1: 'Low Rank', 2: 'High Rank', 4: 'G Rank'}
-CARVE = [(0, 1, 'Carve'), (2, 4, 'Tail carve'), (5, 7, 'Mining'), (8, 13, 'Shiny drop'), (14, 16, 'Gathered from it')]
+CARVE = [(1, 3, 'Carve'), (4, 6, 'Tail carve'), (7, 9, 'Mining'), (10, 15, 'Shiny drop'), (16, 19, 'Gathered from it')]
 
 
 def carve_kind(slot):
@@ -36,12 +38,13 @@ def carve_kind(slot):
 
 
 def hagi_lists(d):
+    """[(slot, [(item, quantity, percent), ...])] for slots 1..19 (slot s starts at the entry in file byte 4+s)."""
     n = (len(d) - 26) // 4
     ents = [struct.unpack_from('<BBH', d, 26 + 4 * i) for i in range(n)]
     out = []
-    for slot in range(20):
-        st = 0 if slot == 0 else d[6 + slot]
-        if slot and st == 0xff:
+    for slot in range(1, 20):
+        st = d[4 + slot]
+        if st == 0xff:
             continue
         l = []
         for p, q, it in ents[st:]:
@@ -70,11 +73,8 @@ def bui_records(d):
             else:
                 cur.append((it, q, p))
             o += 4
-        # per band: capture, then the band's parts in header order
-        labels = []
-        for band in sorted({c % 10 for c in codes}) or [0]:
-            labels.append(('Capture', band))
-            labels += [(f'Break (part {c // 10})', band) for c in codes if c % 10 == band]
+        # one list per code, in code order: code = 10 x (N + 1) + band, N 0 the capture, N 1..5 the breaks
+        labels = [('Capture' if c // 10 == 1 else f'Break {c // 10 - 1}', c % 10) for c in codes]
         yield 'em%03d_%02d' % (em & 0xff, em >> 8), list(zip(labels, lists))
 
 

@@ -163,11 +163,15 @@ export interface Monster {
 }
 
 export type RewardRow = [number, string, number, number]        // item id, item name, quantity, percent
-// Every list the ROM has; a group can hold several (a Deviant's level bands, some extra shiny drops), not yet told apart
+// Every list the ROM has (tools/build_rewards.py). band: a Deviant's level band (the quest's boss mEmSubType % 3);
+// slot: the rHagi slot of a shiny drop / gathered list (some monsters have several, picked by their own code).
+export interface BandList { band: number; rows: RewardRow[] }
+export interface SlotList { slot: number; rows: RewardRow[] }
+export interface BreakList { n: number; band: number; name: string | null; rows: RewardRow[] }
 export interface MonsterRewards {
-  carve?: RewardRow[][]; tail?: RewardRow[][]; mine?: RewardRow[][]; shiny?: RewardRow[][]; gather?: RewardRow[][]
-  capture?: RewardRow[][]
-  break?: Record<string, RewardRow[][]>     // by the ROM's break number; which part it is, is not read yet
+  carve?: BandList[]; tail?: BandList[]; mine?: BandList[]; capture?: BandList[]
+  shiny?: SlotList[]; gather?: SlotList[]
+  break?: BreakList[]                       // named by the break's parts as the Parts table names them
 }
 
 // A monster's hit zones, one table (tools/build_hitzones.py): each zone, then the rows a state or a part puts on it
