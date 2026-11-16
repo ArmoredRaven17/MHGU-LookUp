@@ -21,7 +21,7 @@ export default function GatheringPage() {
     sub: m.ranks.map(r => r.rank.replace(' Rank', '')).join(' · '),
     // search a locale by what can be gathered there
     search: [...new Set(m.ranks.flatMap(r => r.areas.flatMap(a => a.points.flatMap(p =>
-      (p.items ?? p.outcomes?.flatMap(o => o.items) ?? []).map(i => i[0])))))].join(' '),
+      (p.items ?? p.outcomes?.flatMap(o => o.items) ?? p.baits?.flatMap(b => b.items) ?? []).map(i => i[0])))))].join(' '),
   })), [maps])
   const map = maps.find(m => String(m.map) === id)
 
@@ -78,6 +78,12 @@ function MapDetail({ m, rank, setRank }: { m: GatherMap; rank: string; setRank: 
                   <div key={k} style={{ marginTop: k ? 8 : 0 }}>
                     <div className="text-muted" style={{ fontSize: 11 * scale, marginBottom: 2 }}>{o.chance}% of the time</div>
                     <Items items={o.items} />
+                  </div>
+                ))}
+                {p.baits?.map((b, k) => (
+                  <div key={k} style={{ marginTop: k ? 8 : 0 }}>
+                    <div className="text-muted" style={{ fontSize: 11 * scale, marginBottom: 2 }}>{b.bait}</div>
+                    <Items items={b.items} />
                   </div>
                 ))}
               </div>

@@ -220,10 +220,11 @@ export interface Quest {
 export type GatherItem = [string, number, number]   // item, quantity, percent per pull
 
 export interface GatherPoint {
-  kind: string                     // Gathering, Ore Mining, Insect Catching
+  kind: string                     // Gathering, Ore Mining, Insect Catching, Fishing
   items?: GatherItem[]             // a fixed point
   random?: boolean                 // a random point: one of its outcomes is rolled
   outcomes?: { chance: number; items: GatherItem[] }[]
+  baits?: { bait: string; items: GatherItem[] }[]   // a fishing spot: its list with each bait
 }
 
 export interface GatherMap {

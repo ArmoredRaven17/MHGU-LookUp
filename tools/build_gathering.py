@@ -23,6 +23,15 @@ Ranks: a map's rank file is listed only if some quest is played on that map at t
 3 -> high, 5 -> g); Ancestral Steppe and others carry low files no quest loads.
 Kind names: eng/GUI/06_msg/NetworkVillage_eng.gmd 75 'Ore Mining', 76 'Insect Catching', 79 'Gathering'.
 Every list matches a mhgu.db gathering group exactly (item, quantity, percent); see check_gathering.py.
+
+Fishing (Raven, 2026-11-16: "Gathering spots that have fish to say Fishing"; "decode the Fishing Spots"): not in the
+gathering points but in loc/arc/quest.arc quest\\fishData (rFishData): f32 1.0, u32 count, then count x 24-byte cFishData
+[u8 mMapNo, u8 mAreaNo, u8 mFishKind, u8 mFishLv, 20 x u8 mRate] (field names from the class's property list, 0x360370);
+an all-zero row is no spot. mRate[k] is the k-th fish of the u16 item table at main.rodata 0x234fc0 (Whetfish, Sushifish,
+... Guardfish). mFishLv is the quest's mFishingLv: 1 on Low Rank quests, 2 High Rank, 4 G Rank (3: the Arena and
+Training quests, not listed; 0: no quest). mFishKind is the bait: 0 none, 1 Goldenfish Bait, 2 Burst Bait, 3 Sushifish
+Bait, 4 Mega Fishing Fly -- NOT traced in the code: matched against Kiranico's locale pages (mhgu-fishing/data-src),
+where all 227 of its fishing pools equal a row here, each under that bait (C:/MHGU-Extract/fishing-research/).
 """
 import struct, sys
 
@@ -32,6 +41,30 @@ import mh                                         # noqa: E402
 STAGE = 'C:/MHGU-ROM/romfs/nativeNX/loc/arc/stage/map_com/m%02d.arc'
 RANKS = [('low', 'Low Rank'), ('high', 'High Rank'), ('g', 'G Rank')]
 KIND = {0: 79, 2: 75, 3: 76, 20: 79, 22: 79}       # kind -> NetworkVillage_eng.gmd string (20 wood, 22 a honey ledge)
+QUEST = 'C:/MHGU-ROM/romfs/nativeNX/loc/arc/quest.arc'
+FISH_TABLE = 0x234fc0                               # main.rodata: the 20 fish, u16 item ids
+FISH_LV = {1: 'Low Rank', 2: 'High Rank', 4: 'G Rank'}
+# mFishKind -> the bait's item id (Worm 259 is a lure but no list of its own); 0 = no bait, named 'No Bait' as in
+# Raven's MHGU Fishing app
+BAIT = {1: 264, 2: 263, 3: 262, 4: 260}
+
+
+def fishing(item):
+    """{(map, rank label, area): [(bait name, [(item id, percent), ...])]}, for the levels some quest fishes at."""
+    import questdata
+    played = {(q['mMapNo'], q['mFishingLv']) for q in questdata.real_quests()}
+    rodata = open('C:/MHGU-ROM/exefs/main.rodata', 'rb').read()
+    fish = struct.unpack_from('<20H', rodata, FISH_TABLE)
+    d, ents = mh.arc_entries(QUEST)
+    x = mh.arc_extract(d, next(e for e in ents if e[0].endswith('fishData') and e[1] == mh.thash('rFishData')))
+    out = {}
+    for i in range(struct.unpack_from('<I', x, 4)[0]):
+        m, area, kind, lv, *rate = x[8 + 24 * i: 32 + 24 * i]
+        if not any(rate) or lv not in FISH_LV or (m, lv) not in played:
+            continue
+        bait = item[BAIT[kind]] if kind in BAIT else 'No Bait'
+        out.setdefault((m, FISH_LV[lv], area), []).append((kind, bait, [(fish[k], p) for k, p in enumerate(rate) if p]))
+    return {k: [(b, l) for _, b, l in sorted(v)] for k, v in out.items()}
 
 
 def resource(path, cls, name):
@@ -85,6 +118,7 @@ def build(gmd_path, write, item, map_names, reachable):
     kind = {k: net[v] for k, v in KIND.items()}
     camp = next(x for x in gmd_path('table/HN_HunterTipsMsg_eng.gmd') if x == 'Base Camp')
     out, flat = [], []                               # flat: (item id, locale, rank, area, kind, quantity, percent)
+    fish = fishing(item)
     for m in range(1, 27):
         path = STAGE % m
         try:
@@ -125,6 +159,24 @@ def build(gmd_path, write, item, map_names, reachable):
                     areas.append({'area': a, 'name': aname, 'points': points})
             if areas:
                 ranks.append({'rank': label, 'areas': areas})
+        # the area's fishing spot: one point, a list per bait (fishing() above); kind 'Fishing · <bait>' in `flat`
+        for (fm, label, a), pools in sorted(fish.items(), key=lambda kv: (kv[0][0], [l for _, l in RANKS].index(kv[0][1]), kv[0][2])):
+            if fm != m:
+                continue
+            r = next((x for x in ranks if x['rank'] == label), None)
+            if r is None:
+                r = {'rank': label, 'areas': []}
+                ranks.append(r)
+                ranks.sort(key=lambda x: [l for _, l in RANKS].index(x['rank']))
+            ar = next((x for x in r['areas'] if x['area'] == a), None)
+            if ar is None:
+                ar = {'area': a, 'name': camp if a == 0 else f'Area {a}', 'points': []}
+                r['areas'].append(ar)
+                r['areas'].sort(key=lambda x: x['area'])
+            ar['points'].append({'kind': 'Fishing', 'baits': [{'bait': b, 'items': [[item[i], 1, p] for i, p in l]}
+                                                              for b, l in pools]})
+            flat += [(i, map_names.get(m, f'Map {m}'), label, ar['name'], f'Fishing · {b}', 1, p)
+                     for b, l in pools for i, p in l]
         if ranks:
             out.append({'map': m, 'name': map_names.get(m, f'Map {m}'), 'ranks': ranks})
     write('gathering.json', out)

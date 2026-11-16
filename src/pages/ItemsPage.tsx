@@ -10,9 +10,10 @@ import { useItemIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
 
 type Source = [string, string, string, number | null]   // kind, where, detail, percent
-const KINDS = ['Shop', 'Combining', 'Monster', 'Gathering', 'Quest reward']
+const KINDS = ['Shop', 'Combining', 'Monster', 'Gathering', 'Fishing', 'Quest reward']
 const HEADINGS: Record<string, string> = {
-  Shop: 'Shop', Combining: 'Combining', Monster: 'Monsters', Gathering: 'Gathering', 'Quest reward': 'Quest Rewards',
+  Shop: 'Shop', Combining: 'Combining', Monster: 'Monsters', Gathering: 'Gathering', Fishing: 'Fishing',
+  'Quest reward': 'Quest Rewards',
 }
 
 export default function ItemsPage() {

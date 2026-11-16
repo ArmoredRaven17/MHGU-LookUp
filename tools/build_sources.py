@@ -111,7 +111,10 @@ def build(write, monster_names, gathering, quests, item_name, rewards=None):
     # gathering: [(item, locale, rank, area, kind, pct)]
     x = lambda q: f' ×{q}' if q > 1 else ''
     for item, loc, rank, area, kind, q, pct in gathering:
-        add(item, ['Gathering', loc, f'{rank} · {area} · {kind}{x(q)}', pct])
+        if kind.startswith('Fishing · '):          # a fishing spot's list (build_gathering.fishing): by its bait
+            add(item, ['Fishing', loc, f'{rank} · {area} · {kind[10:]}', pct])
+        else:
+            add(item, ['Gathering', loc, f'{rank} · {area} · {kind}{x(q)}', pct])
     # quest rewards: [(item, quest label, slot, pct)]
     for item, label, slot, q, pct in quests:
         add(item, ['Quest reward', label, (f'Reward {slot}' if slot != 'Sub' else 'Subquest reward') + x(q), pct])
