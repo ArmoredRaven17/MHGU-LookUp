@@ -92,7 +92,9 @@ function Sources({ list }: { list: Source[] }) {
               <tbody>
                 {rows.map(r => (
                   <tr key={r.where} className="tbl-row">
-                    <td className="tbl-cell" style={{ verticalAlign: 'top', width: '34%' }}>{r.where}</td>
+                    {/* a combination ("A + B") stays on one line (Raven, 2026-11-16) */}
+                    <td className="tbl-cell" style={{ verticalAlign: 'top', width: '34%',
+                      whiteSpace: g.kind === 'Combining' ? 'nowrap' : undefined }}>{r.where}</td>
                     <td className="tbl-cell" style={{ fontSize: 12 * scale }}>
                       {r.ss.map((s, i) => (
                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>

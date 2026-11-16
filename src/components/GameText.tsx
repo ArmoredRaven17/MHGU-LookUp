@@ -4,9 +4,14 @@ import type { ReactNode } from 'react'
 // Any other tag is dropped. The game breaks lines to fit its text boxes; those breaks are joined
 // back into running text (a word hyphenated at a break keeps its hyphen), except in centred text and
 // where the game leaves a blank line.
+// A "(Supply Item)" tag always gets a line of its own (Raven, 2026-11-16), wherever the game put it.
+const SUPPLY = /\s*(<COL [0-9A-Fa-f]{8}>\(Supply Item\)<\/COL>)/g
+
 export default function GameText({ text, style }: { text: string; style?: React.CSSProperties }) {
   const centred = text.includes('<CNTR>')
-  const flowed = centred ? text : text.split(/\n{2,}/).map(p => p.replace(/-\n/g, '-').replace(/\n/g, ' ')).join('\n\n')
+  const marked = text.replace(SUPPLY, '\u2028$1')
+  const flowed = (centred ? marked : marked.split(/\n{2,}/).map(p => p.replace(/-\n/g, '-').replace(/\n/g, ' ')).join('\n\n'))
+    .replace(/\u2028/g, '\n')
   const out: ReactNode[] = []
   let colour: string | null = null
   let k = 0
