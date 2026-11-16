@@ -74,7 +74,6 @@ function useFoughtIn(id: string) {
 }
 
 function MonsterDetail({ m, types }: { m: Monster; types: string[] }) {
-  const scale = useTextScale()
   const fought = useFoughtIn(m.id)
   const icon = useMonsterIcons()
   const path = `/monsters/${m.id}`
