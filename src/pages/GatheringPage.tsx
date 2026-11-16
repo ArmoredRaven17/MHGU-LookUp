@@ -35,7 +35,7 @@ export default function GatheringPage() {
 
 function Items({ items }: { items: GatherItem[] }) {
   return (
-    <table style={{ borderCollapse: 'collapse' }}>
+    <table style={{ borderCollapse: 'collapse', width: '100%' }}>
       <tbody>
         {[...items].sort((a, b) => b[2] - a[2]).map(([name, qty, pct], i) => (
           <tr key={i} className="tbl-row">
@@ -67,7 +67,8 @@ function MapDetail({ m, rank, setRank }: { m: GatherMap; rank: string; setRank: 
 
       {shown.areas.map(a => (
         <Section key={a.area} title={a.name}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+          {/* every card the same width, in the same columns in every area (Raven, 2026-11-16) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, alignItems: 'start' }}>
             {a.points.map((p, i) => (
               <div key={i} className="card" style={{ padding: '8px 10px' }}>
                 <div style={{ fontSize: 12 * scale, fontWeight: 600, color: 'var(--accent)', marginBottom: 4 }}>
