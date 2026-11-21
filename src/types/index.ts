@@ -59,6 +59,10 @@ export interface WeaponForm {
   from: number        // the level this name starts at
 }
 
+// Hunting Horn songs (horn-songs.json, tools/build_horn_songs.py): notes in play order, by name; colours by note name.
+export interface HornSong { notes: string[]; name: string; effect: string; encore: string }
+export interface HornSongs { colours: Record<string, string>; songs: HornSong[] }
+
 export interface WeaponLevel {
   lv: number
   raw: number

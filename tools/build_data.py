@@ -175,6 +175,8 @@ def weapons():
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import build_weapons
     build_weapons.build(gmd, rows, write, item_names(), point_categories())
+    import build_horn_songs
+    build_horn_songs.build(gmd, rows, write)
 
 
 # ── Armor ───────────────────────────────────────────────────────────────────────────────────

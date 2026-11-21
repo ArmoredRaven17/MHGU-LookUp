@@ -20,12 +20,13 @@ export interface ListEntry {
 
 // The list + detail shell every lookup tab shares (from the MHFU LookUp): a resizable,
 // collapsible list panel with an optional filter and a search box, and the detail beside it.
-export default function ListPage({ entries, base, selected, placeholder, filter, emptyText, children }: {
+export default function ListPage({ entries, base, selected, placeholder, filter, tools, emptyText, children }: {
   entries: ListEntry[]
   base: string                        // route of the tab, e.g. '/weapons'
   selected?: string
   placeholder: string
   filter?: { value: string; options: { value: string; label: string }[]; onChange: (v: string) => void }
+  tools?: ReactNode                   // buttons under the filter (the Hunting Horn's Songs…)
   emptyText: string                   // shown when nothing is selected
   children?: ReactNode                // the detail of the selected entry
 }) {
@@ -72,6 +73,9 @@ export default function ListPage({ entries, base, selected, placeholder, filter,
               {filter.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
+        )}
+        {tools && (
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', padding: '6px 8px', borderBottom: '1px solid var(--border)' }}>{tools}</div>
         )}
         <SearchBox value={search} onChange={setSearch} placeholder={placeholder} />
         <div style={{ overflowY: 'auto', flex: 1 }}>
