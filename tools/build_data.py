@@ -176,7 +176,7 @@ def weapons():
     import build_weapons
     build_weapons.build(gmd, rows, write, item_names(), point_categories())
     import build_horn_songs
-    build_horn_songs.build(gmd, rows, write)
+    build_horn_songs.build(gmd, rows, write, os.path.join(OUT, '..'))
 
 
 # ── Armor ───────────────────────────────────────────────────────────────────────────────────

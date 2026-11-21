@@ -11,7 +11,7 @@ import GameText from '../components/GameText'
 import { SharpnessBar, Materials, SlotsText } from '../components/Equipment'
 import { useEquipIcons } from '../data/icons'
 import { useTextScale } from '../theme/textScale'
-import { SongsButton, NoteNames, SongTable, songsFor, useHornSongs } from '../components/HornSongs'
+import { SongsButton, NoteIcons, SongTable, songsFor, useHornSongs } from '../components/HornSongs'
 
 // Route: /weapons/<class id>/<row>, e.g. /weapons/w10/65.
 export default function WeaponsPage() {
@@ -213,7 +213,7 @@ function Stats({ w, l, sharpness }: { w: Weapon; l: WeaponLevel; sharpness: numb
           <Row k="Slots"><SlotsText n={l.slots} /></Row>
           {w.phial && <Row k="Phial">{w.phial}{l.phialValue ? ` ${l.phialValue}` : ''}</Row>}
           {w.shelling && <Row k="Shelling">{w.shelling} Lv {l.shellLv}</Row>}
-          {l.notes && <Row k="Notes"><HornNotes notes={l.notes} /></Row>}
+          {l.notes && <Row k="Notes"><NoteIcons notes={l.notes} /></Row>}
           {l.sharp && (
             <Row k="Sharpness">
               {[0, 1, 2].map(h => (
@@ -305,16 +305,10 @@ function GunTables({ g }: { g: NonNullable<WeaponLevel['gun']> }) {
   )
 }
 
-// A horn's notes in the game's note colours (Raven, 2026-11-21: "color code the notes").
-function HornNotes({ notes }: { notes: string[] }) {
-  const songs = useHornSongs()
-  return songs ? <NoteNames notes={notes} colours={songs.colours} /> : <>{notes.join(' · ')}</>
-}
-
 // The songs this horn's notes play at this level, as the MHFU LookUp lists them on a horn's page.
 function HornSongSection({ notes }: { notes: string[] }) {
   const songs = useHornSongs()
   if (!songs) return null
   const mine = songsFor(songs, notes)
-  return mine.length ? <Section title="Songs"><SongTable songs={mine} colours={songs.colours} /></Section> : null
+  return mine.length ? <Section title="Songs"><SongTable songs={mine} /></Section> : null
 }
