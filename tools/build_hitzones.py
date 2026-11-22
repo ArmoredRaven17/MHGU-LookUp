@@ -135,6 +135,9 @@ def _table(tables, rules, st, on, heated):
         if 'rage' in r and bool(r['rage']) != bool(st.get('rage')): continue
         if 'mode' in r and st.get('mode', 0) not in r['mode']: continue
         if 'ctl' in r and st.get('ctl', 0) not in r['ctl']: continue
+        # `rank` (the quest rank the set-up read, 2026-11-22): not shown yet -- how a rank row is named waits on Raven,
+        # so a rank rule holds only where a state passes a rank
+        if 'rank' in r and st.get('rank') not in r['rank']: continue
         if r.get('broken') and not all(k in on for k in keys(r['broken'])): continue
         if r.get('intact') and any(k in on for k in keys(r['intact'])): continue
         if r.get('heat') and not heated: continue
