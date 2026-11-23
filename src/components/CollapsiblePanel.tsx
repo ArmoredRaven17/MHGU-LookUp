@@ -67,7 +67,8 @@ export default function CollapsiblePanel({ width, style, children }: {
         {children}
       </div>
       <div onMouseDown={onHandleMouseDown} title="Drag to resize — click to hide list" style={{
-        width: 14, minWidth: 14, borderLeft: '1px solid var(--border)',
+        // 20px, the width of the collapsed "Show list" button (Raven, 2026-11-22: "slightly larger"; was 14)
+        width: 20, minWidth: 20, borderLeft: '1px solid var(--border)', fontSize: 15,
         background: 'var(--surface)', cursor: 'ew-resize', color: 'var(--muted)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, userSelect: 'none',
       }}>◂</div>
